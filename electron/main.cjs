@@ -130,6 +130,7 @@ else {
 }
 
 function startBackend() {
+  fs.mkdirSync(app.getPath('userData'), { recursive: true });
   const executable = app.isPackaged
     ? path.join(process.resourcesPath, 'backend', process.platform === 'win32' ? 'badnotes-backend.exe' : 'badnotes-backend')
     : process.env.BADNOTES_PYTHON || path.join(root, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
@@ -331,6 +332,11 @@ app.whenReady().then(async () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
   } catch (error) {
+    if (process.env.BADNOTES_SMOKE_TEST === '1') {
+      console.error(error);
+      app.exit(1);
+      return;
+    }
     await dialog.showMessageBox({
       type: 'error',
       title: 'BadNotes could not start',

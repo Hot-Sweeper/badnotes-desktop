@@ -48,6 +48,9 @@ jobs:
             .venv/bin/python -m pip install -r requirements-build.txt
           fi
       - run: npm ci
+      - name: Verify release version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node -e "if(process.env.GITHUB_REF_NAME !== 'v'+require('./package.json').version) process.exit(1)"
       - run: npm run check
       - run: npm test
       - name: Backend unit tests
@@ -63,10 +66,10 @@ jobs:
         run: python scripts/smoke-backend.py
       - name: Test desktop startup (Linux)
         if: runner.os == 'Linux'
-        run: xvfb-run -a ./node_modules/.bin/electron scripts/smoke-desktop.cjs --ozone-platform=x11
+        run: xvfb-run -a node scripts/smoke-packaged.cjs
       - name: Test desktop startup (Windows and macOS)
         if: runner.os != 'Linux'
-        run: ./node_modules/.bin/electron scripts/smoke-desktop.cjs
+        run: node scripts/smoke-packaged.cjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: BadNotes-${{ matrix.platform }}-${{ matrix.arch }}

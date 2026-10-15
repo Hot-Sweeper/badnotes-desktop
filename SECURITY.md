@@ -14,3 +14,8 @@ Do not include notebooks, credentials, API keys, or personal images in bug repor
 
 Only the latest alpha is maintained at this stage. Signed/notarized packages and
 a full independent security review are not yet available.
+
+The initial build-tool dependency tree has a moderate `sprintf-js` denial-of-service
+advisory through Electron Builder's download tooling. It is not included in the
+application runtime; the production npm dependency audit is clean. Track upstream
+build-tool updates rather than forcing incompatible dependency replacements.

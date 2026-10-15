@@ -132,6 +132,8 @@ npm run dist:mac
 
 Packages go to `dist/`. PyInstaller bundles the backend before Electron Builder packages the app. Build on each target OS/architecture: copying a Linux backend into a Windows or macOS package will not work. The release workflow handles native builds and checksum generation.
 
+Debian packaging also needs the compatibility libraries used by Electron Builder's FPM helper (for example, `libxcrypt-compat` on Arch-based build hosts). Official Linux builds use Ubuntu 22.04 runners.
+
 ## Development
 
 ```text
