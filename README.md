@@ -23,7 +23,9 @@
 
 > **First public alpha.** Expect rough edges. Back up important notes before testing. Cross-platform packages are built in CI; pen hardware and desktop integration still need real-device testing, especially on Windows and macOS.
 
-BadNotes is a local-first notebook app built around handwriting, an open canvas, and a quiet purple-and-pink interface. Draw, type in your own handwriting, arrange pages, and move your ideas around without turning every action into a dialog.
+BadNotes is basically my open-source, vibecoded take on Goodnotes, aiming for less bloat. You can write, sketch, type in your own handwriting, and lasso things around in a purple-and-pink workspace. Arrange pages into notebooks that stay on your machine. The trash animation may have become a side quest.
+
+This is an independent project and isn't affiliated with Goodnotes.
 
 <p align="center"><img src=".github/assets/workspace.png" alt="BadNotes light workspace with custom notebooks, a dotted page, geometric shapes, and the floating pen toolbar"></p>
 
