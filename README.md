@@ -34,7 +34,7 @@ BadNotes is a local-first notebook app built around handwriting, an open canvas,
 - Editable geometry, shape tools, and sketch recognition
 - Custom notebook covers, emblems, colors, and drag-to-reorder shelves
 - Resizable pages with live previews, dotted, ruled, grid, and blank paper
-- Image import, PDF workflows, and a recoverable recycling bin
+- Image import, notebook JSON import/export, and a recoverable recycling bin
 - Light, dark, and OLED modes, with six interface tones
 - Momentum-based navigation, elastic shelves, and animated drag-and-drop
 - A floating, customizable toolbar and keyboard shortcuts
