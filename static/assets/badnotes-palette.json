@@ -1,0 +1,12 @@
+{
+  "source": "badnotes-logo-extracted.png",
+  "method": "Exact unpremultiplied RGB pixel samples; alpha is not used as a color component.",
+  "colors": {
+    "purple": {"hex": "#7640fd", "rgb": [118, 64, 253], "pixel": [390, 839], "role": "Ink, light-mode text and solid controls"},
+    "purple-deep": {"hex": "#5e29f8", "rgb": [94, 41, 248], "pixel": [370, 858], "role": "Hover and pressed states"},
+    "orchid": {"hex": "#9a4cfd", "rgb": [154, 76, 253], "pixel": [570, 870], "role": "Gradient accent"},
+    "lilac": {"hex": "#c39cf8", "rgb": [195, 156, 248], "pixel": [972, 244], "role": "Readable dark-mode accents"},
+    "pink": {"hex": "#edd3fd", "rgb": [237, 211, 253], "pixel": [1022, 180], "role": "Pink sheen and soft washes"},
+    "paper": {"hex": "#f4e8fb", "rgb": [244, 232, 251], "pixel": [548, 337], "role": "Warm lavender paper highlight"}
+  }
+}

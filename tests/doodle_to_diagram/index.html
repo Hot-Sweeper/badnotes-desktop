@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doodle to Diagram - Smart Shape Detection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #fff;
+            margin: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn.primary {
+            background: linear-gradient(135deg, #6c5ce7, #a855f7);
+            color: #fff;
+        }
+
+        .tool-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .tool-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .tool-btn.secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .tool-btn.active {
+            background: #00b894;
+            color: #fff;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 4px;
+        }
+
+        .color-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-dot:hover { transform: scale(1.1); }
+        .color-dot.active {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.5);
+        }
+
+        .toggle-group {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .toggle-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: #888;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #6c5ce7;
+            color: #fff;
+        }
+
+        .toggle-btn:hover:not(.active) {
+            color: #fff;
+        }
+
+        .status-bar {
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-bar .detected {
+            color: #00b894;
+            font-weight: 600;
+        }
+
+        .hint {
+            color: #6c5ce7;
+        }
+
+        /* Instructions */
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 35, 50, 0.95);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .instructions kbd {
+            background: rgba(108, 92, 231, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(30, 35, 50, 0.95);
+            border: 1px solid rgba(108, 92, 231, 0.5);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-color: #00b894; color: #00b894; }
+
+        /* Shape preview hint */
+        .shape-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .shape-hint.visible {
+            opacity: 1;
+        }
+
+        /* Stroke width selector */
+        .stroke-selector {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .stroke-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .stroke-btn:hover { background: rgba(255,255,255,0.1); }
+        .stroke-btn.active {
+            background: #6c5ce7;
+            border-color: #6c5ce7;
+        }
+
+        .stroke-btn span {
+            background: #fff;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <span>✏️ Draw shapes</span>
+        <span>→</span>
+        <span>Auto-detected: <kbd>lines</kbd> <kbd>circles</kbd> <kbd>rectangles</kbd> <kbd>arrows</kbd> <kbd>triangles</kbd></span>
+        <span>→</span>
+        <span>No AI, pure math! 🧮</span>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>🎨</span> Smart Shape Detection
+                </div>
+                <div class="toolbar">
+                    <div class="color-picker">
+                        <div class="color-dot active" style="background: #2d3436" data-color="#2d3436"></div>
+                        <div class="color-dot" style="background: #0984e3" data-color="#0984e3"></div>
+                        <div class="color-dot" style="background: #00b894" data-color="#00b894"></div>
+                        <div class="color-dot" style="background: #e17055" data-color="#e17055"></div>
+                        <div class="color-dot" style="background: #6c5ce7" data-color="#6c5ce7"></div>
+                    </div>
+
+                    <div class="stroke-selector">
+                        <button class="stroke-btn" data-width="2"><span style="width: 8px; height: 2px;"></span></button>
+                        <button class="stroke-btn active" data-width="3"><span style="width: 10px; height: 3px;"></span></button>
+                        <button class="stroke-btn" data-width="5"><span style="width: 12px; height: 5px;"></span></button>
+                        <button class="stroke-btn" data-width="8"><span style="width: 14px; height: 8px;"></span></button>
+                    </div>
+
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" data-mode="smart">✨ Smart</button>
+                        <button class="toggle-btn" data-mode="free">✏️ Free</button>
+                    </div>
+
+                    <button class="tool-btn secondary" onclick="undo()">↩️ Undo</button>
+                    <button class="tool-btn secondary" onclick="clearCanvas()">🗑️ Clear</button>
+                    <button class="tool-btn primary" onclick="downloadCanvas()">💾 Save</button>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+                <div class="shape-hint" id="shapeHint">Circle detected!</div>
+            </div>
+            <div class="status-bar">
+                <span id="strokeCount">0 shapes</span>
+                <span class="detected" id="detectedShape">-</span>
+                <span class="hint">Draw & release to see the magic ✨</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== Setup ==========
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const shapeHint = document.getElementById('shapeHint');
+
+        let shapes = []; // Finalized shapes
+        let currentStroke = null;
+        let isDrawing = false;
+        let currentColor = '#2d3436';
+        let strokeWidth = 3;
+        let smartMode = true;
+        let history = [];
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = container.clientWidth * dpr;
+            canvas.height = container.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+            canvas.style.width = container.clientWidth + 'px';
+            canvas.style.height = container.clientHeight + 'px';
+            redraw();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // ========== Drawing Events ==========
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', continueDrawing);
+        canvas.addEventListener('pointerup', endDrawing);
+        canvas.addEventListener('pointerleave', endDrawing);
+        canvas.addEventListener('pointercancel', endDrawing);
+
+        // Prevent gestures
+        canvas.addEventListener('gesturestart', e => e.preventDefault());
+        canvas.addEventListener('gesturechange', e => e.preventDefault());
+        canvas.addEventListener('gestureend', e => e.preventDefault());
+        document.addEventListener('touchmove', e => { if (isDrawing) e.preventDefault(); }, { passive: false });
+
+        function startDrawing(e) {
+            e.preventDefault();
+            canvas.setPointerCapture(e.pointerId);
+
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            currentStroke = {
+                points: [{ x, y, time: Date.now() }],
+                color: currentColor,
+                width: strokeWidth
+            };
+        }
+
+        function continueDrawing(e) {
+            if (!isDrawing || !currentStroke) return;
+            e.preventDefault();
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Only add point if moved enough (reduces noise)
+            const last = currentStroke.points[currentStroke.points.length - 1];
+            if (distance(last, {x, y}) > 2) {
+                currentStroke.points.push({ x, y, time: Date.now() });
+            }
+
+            // Real-time shape detection hint
+            if (smartMode && currentStroke.points.length > 15) {
+                const detected = detectShape(currentStroke.points);
+                updateShapeHint(detected);
+            }
+
+            redraw();
+        }
+
+        function endDrawing(e) {
+            if (e && e.pointerId) {
+                canvas.releasePointerCapture(e.pointerId);
+            }
+
+            if (!currentStroke || currentStroke.points.length < 3) {
+                currentStroke = null;
+                isDrawing = false;
+                return;
+            }
+
+            // Save for undo
+            history.push(JSON.parse(JSON.stringify(shapes)));
+            if (history.length > 30) history.shift();
+
+            if (smartMode) {
+                // Detect and convert to clean shape
+                const detected = detectShape(currentStroke.points);
+                const cleanShape = createCleanShape(detected, currentStroke);
+                shapes.push(cleanShape);
+
+                document.getElementById('detectedShape').textContent = `✓ ${detected.type}`;
+                showToast(`${getShapeEmoji(detected.type)} ${detected.type} detected!`, 'success');
+            } else {
+                // Keep raw stroke (but smooth it)
+                shapes.push({
+                    type: 'freehand',
+                    points: smoothPoints(currentStroke.points),
+                    color: currentStroke.color,
+                    lineWidth: currentStroke.width
+                });
+                document.getElementById('detectedShape').textContent = 'freehand';
+            }
+
+            currentStroke = null;
+            isDrawing = false;
+            hideShapeHint();
+            updateStrokeCount();
+            redraw();
+        }
+
+        // ========== Shape Detection Algorithms ==========
+
+        function detectShape(points) {
+            if (points.length < 3) return { type: 'dot', confidence: 1 };
+
+            const start = points[0];
+            const end = points[points.length - 1];
+            const closingDist = distance(start, end);
+            const bounds = getBounds(points);
+            const pathLength = getPathLength(points);
+
+            // Is it closed? (start and end near each other relative to size)
+            const diagLen = Math.sqrt(bounds.width**2 + bounds.height**2);
+            const isClosed = closingDist < diagLen * 0.25 && diagLen > 20;
+
+            if (isClosed) {
+                // Closed shape - circle, rectangle, or triangle?
+                const circleScore = getCircleScore(points, bounds);
+                const rectScore = getRectangleScore(points, bounds);
+                const triangleScore = getTriangleScore(points, bounds);
+
+                console.log(`Scores - Circle: ${circleScore.toFixed(2)}, Rect: ${rectScore.toFixed(2)}, Triangle: ${triangleScore.toFixed(2)}`);
+
+                // Pick best match
+                if (circleScore > 0.65 && circleScore >= rectScore && circleScore >= triangleScore) {
+                    return { type: 'circle', confidence: circleScore, bounds };
+                } else if (triangleScore > 0.6 && triangleScore >= rectScore) {
+                    const corners = findCorners(points, 3);
+                    return { type: 'triangle', confidence: triangleScore, corners };
+                } else if (rectScore > 0.55) {
+                    return { type: 'rectangle', confidence: rectScore, bounds };
+                } else {
+                    // Generic closed shape - keep as smoothed polygon
+                    return { type: 'polygon', confidence: 0.5, points: simplifyPath(points, 5) };
+                }
+            } else {
+                // Open shape - line, arrow, or curve?
+                const lineScore = getLineScore(points);
+                const arrowData = detectArrowHead(points);
+
+                console.log(`Line score: ${lineScore.toFixed(2)}, Arrow: ${arrowData ? 'yes' : 'no'}`);
+
+                if (arrowData && lineScore > 0.65) {
+                    return { type: 'arrow', confidence: lineScore, start, end, arrowData };
+                } else if (lineScore > 0.75) {
+                    return { type: 'line', confidence: lineScore, start, end };
+                } else {
+                    // It's a curve - simplify while preserving shape
+                    const simplified = simplifyPath(points, 4);
+                    return { type: 'curve', confidence: 0.9, points: simplified };
+                }
+            }
+        }
+
+        // ========== Geometry Helpers ==========
+
+        function distance(p1, p2) {
+            return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+        }
+
+        function getPathLength(points) {
+            let len = 0;
+            for (let i = 1; i < points.length; i++) {
+                len += distance(points[i-1], points[i]);
+            }
+            return len;
+        }
+
+        function getBounds(points) {
+            let minX = Infinity, minY = Infinity;
+            let maxX = -Infinity, maxY = -Infinity;
+
+            for (const p of points) {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            }
+
+            return {
+                x: minX, y: minY,
+                width: maxX - minX,
+                height: maxY - minY,
+                centerX: (minX + maxX) / 2,
+                centerY: (minY + maxY) / 2
+            };
+        }
+
+        function getCircleScore(points, bounds) {
+            const cx = bounds.centerX;
+            const cy = bounds.centerY;
+            const radius = (bounds.width + bounds.height) / 4;
+
+            if (radius < 10) return 0; // Too small
+
+            // Check how close points are to the calculated radius
+            let totalError = 0;
+            for (const p of points) {
+                const d = distance(p, { x: cx, y: cy });
+                totalError += Math.abs(d - radius);
+            }
+
+            const avgError = totalError / points.length;
+            const radiusScore = Math.max(0, 1 - (avgError / radius));
+
+            // Aspect ratio score - circles should be roughly square
+            const aspectRatio = Math.min(bounds.width, bounds.height) / Math.max(bounds.width, bounds.height);
+            const aspectScore = aspectRatio; // 1 = perfect square, 0 = super stretched
+
+            return radiusScore * 0.7 + aspectScore * 0.3;
+        }
+
+        function getRectangleScore(points, bounds) {
+            const { x, y, width, height } = bounds;
+            if (width < 15 || height < 15) return 0;
+
+            // Rectangle edges
+            const edges = [
+                { x1: x, y1: y, x2: x + width, y2: y },           // top
+                { x1: x + width, y1: y, x2: x + width, y2: y + height }, // right
+                { x1: x + width, y1: y + height, x2: x, y2: y + height }, // bottom
+                { x1: x, y1: y + height, x2: x, y2: y }            // left
+            ];
+
+            // How many points are close to an edge?
+            const threshold = Math.max(width, height) * 0.12;
+            let nearEdgeCount = 0;
+
+            for (const p of points) {
+                for (const edge of edges) {
+                    const d = pointToLineSegmentDistance(p, edge);
+                    if (d < threshold) {
+                        nearEdgeCount++;
+                        break;
+                    }
+                }
+            }
+
+            const edgeScore = nearEdgeCount / points.length;
+
+            // Check for 4 corners (direction changes)
+            const corners = findCorners(points, 4);
+            const cornerScore = corners.length >= 3 ? 1 : corners.length / 4;
+
+            return edgeScore * 0.6 + cornerScore * 0.4;
+        }
+
+        function getTriangleScore(points, bounds) {
+            // Look for exactly 3 corners
+            const corners = findCorners(points, 5);
+
+            if (corners.length < 3 || corners.length > 4) {
+                return corners.length === 3 ? 0.5 : 0.2;
+            }
+
+            // Check if points follow triangle edges
+            const triCorners = corners.slice(0, 3);
+            const edges = [
+                { x1: triCorners[0].x, y1: triCorners[0].y, x2: triCorners[1].x, y2: triCorners[1].y },
+                { x1: triCorners[1].x, y1: triCorners[1].y, x2: triCorners[2].x, y2: triCorners[2].y },
+                { x1: triCorners[2].x, y1: triCorners[2].y, x2: triCorners[0].x, y2: triCorners[0].y }
+            ];
+
+            const threshold = Math.max(bounds.width, bounds.height) * 0.15;
+            let nearEdgeCount = 0;
+
+            for (const p of points) {
+                for (const edge of edges) {
+                    const d = pointToLineSegmentDistance(p, edge);
+                    if (d < threshold) {
+                        nearEdgeCount++;
+                        break;
+                    }
+                }
+            }
+
+            return nearEdgeCount / points.length;
+        }
+
+        function findCorners(points, minAngle = 4) {
+            // Find points with significant direction change
+            const corners = [];
+            const angleThreshold = Math.PI / minAngle; // ~45 degrees default
+
+            // Sample points to reduce noise
+            const step = Math.max(1, Math.floor(points.length / 30));
+            const sampled = points.filter((_, i) => i % step === 0 || i === points.length - 1);
+
+            if (sampled.length < 5) return [];
+
+            for (let i = 2; i < sampled.length - 2; i++) {
+                const prev = sampled[i - 2];
+                const curr = sampled[i];
+                const next = sampled[i + 2];
+
+                const angle1 = Math.atan2(curr.y - prev.y, curr.x - prev.x);
+                const angle2 = Math.atan2(next.y - curr.y, next.x - curr.x);
+
+                let angleDiff = Math.abs(angle2 - angle1);
+                if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+
+                if (angleDiff > angleThreshold) {
+                    // Check if not too close to existing corner
+                    const tooClose = corners.some(c => distance(c, curr) < 20);
+                    if (!tooClose) {
+                        corners.push(curr);
+                    }
+                }
+            }
+
+            return corners;
+        }
+
+        function getLineScore(points) {
+            if (points.length < 2) return 0;
+
+            const start = points[0];
+            const end = points[points.length - 1];
+            const lineLen = distance(start, end);
+
+            if (lineLen < 15) return 0;
+
+            // Average distance of all points from the line
+            let totalDist = 0;
+            for (const p of points) {
+                totalDist += pointToLineDistance(p, start, end);
+            }
+
+            const avgDist = totalDist / points.length;
+            const normalizedError = avgDist / lineLen;
+
+            return Math.max(0, 1 - normalizedError * 10);
+        }
+
+        function pointToLineDistance(point, lineStart, lineEnd) {
+            const A = point.x - lineStart.x;
+            const B = point.y - lineStart.y;
+            const C = lineEnd.x - lineStart.x;
+            const D = lineEnd.y - lineStart.y;
+
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = lenSq !== 0 ? dot / lenSq : -1;
+
+            let xx, yy;
+            if (param < 0) {
+                xx = lineStart.x; yy = lineStart.y;
+            } else if (param > 1) {
+                xx = lineEnd.x; yy = lineEnd.y;
+            } else {
+                xx = lineStart.x + param * C;
+                yy = lineStart.y + param * D;
+            }
+
+            return distance(point, { x: xx, y: yy });
+        }
+
+        function pointToLineSegmentDistance(point, segment) {
+            return pointToLineDistance(point,
+                { x: segment.x1, y: segment.y1 },
+                { x: segment.x2, y: segment.y2 }
+            );
+        }
+
+        function detectArrowHead(points) {
+            // Check if the stroke ends with a quick back-stroke (V shape)
+            if (points.length < 15) return null;
+
+            // Look at the last portion of the stroke
+            const lastPortion = points.slice(-Math.min(15, Math.floor(points.length * 0.3)));
+
+            // Find the maximum curvature point (potential arrow tip)
+            let maxCurvature = 0;
+            let tipIndex = -1;
+
+            for (let i = 3; i < lastPortion.length - 3; i++) {
+                const prev = lastPortion[i - 3];
+                const curr = lastPortion[i];
+                const next = lastPortion[i + 3];
+
+                const v1 = { x: curr.x - prev.x, y: curr.y - prev.y };
+                const v2 = { x: next.x - curr.x, y: next.y - curr.y };
+
+                const cross = v1.x * v2.y - v1.y * v2.x;
+                const dot = v1.x * v2.x + v1.y * v2.y;
+                const angle = Math.abs(Math.atan2(cross, dot));
+
+                if (angle > maxCurvature && angle > Math.PI * 0.4) {
+                    maxCurvature = angle;
+                    tipIndex = i;
+                }
+            }
+
+            if (tipIndex > 0 && maxCurvature > Math.PI * 0.4) {
+                return { tipIndex, curvature: maxCurvature };
+            }
+
+            return null;
+        }
+
+        // Douglas-Peucker path simplification
+        function simplifyPath(points, epsilon) {
+            if (points.length < 3) return [...points];
+
+            let maxDist = 0;
+            let maxIdx = 0;
+            const start = points[0];
+            const end = points[points.length - 1];
+
+            for (let i = 1; i < points.length - 1; i++) {
+                const d = pointToLineDistance(points[i], start, end);
+                if (d > maxDist) {
+                    maxDist = d;
+                    maxIdx = i;
+                }
+            }
+
+            if (maxDist > epsilon) {
+                const left = simplifyPath(points.slice(0, maxIdx + 1), epsilon);
+                const right = simplifyPath(points.slice(maxIdx), epsilon);
+                return [...left.slice(0, -1), ...right];
+            } else {
+                return [start, end];
+            }
+        }
+
+        function smoothPoints(points) {
+            // Simple moving average smoothing
+            if (points.length < 5) return points;
+
+            const smoothed = [points[0]];
+            const windowSize = 3;
+
+            for (let i = 1; i < points.length - 1; i++) {
+                let sumX = 0, sumY = 0, count = 0;
+
+                for (let j = Math.max(0, i - windowSize); j <= Math.min(points.length - 1, i + windowSize); j++) {
+                    sumX += points[j].x;
+                    sumY += points[j].y;
+                    count++;
+                }
+
+                smoothed.push({ x: sumX / count, y: sumY / count });
+            }
+
+            smoothed.push(points[points.length - 1]);
+            return smoothed;
+        }
+
+        // Snap line to nearest 45° angle (0, 45, 90, 135, 180, etc.)
+        function snapLineToAngle(start, end, threshold = 10) {
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+
+            // Current angle in degrees
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+            // Snap angles: 0, 45, 90, 135, 180, -45, -90, -135
+            const snapAngles = [0, 45, 90, 135, 180, -45, -90, -135, -180];
+
+            let closestAngle = angle;
+            let minDiff = Infinity;
+
+            for (const snap of snapAngles) {
+                const diff = Math.abs(angle - snap);
+                if (diff < minDiff && diff < threshold) {
+                    minDiff = diff;
+                    closestAngle = snap;
+                }
+            }
+
+            // Convert back to radians and calculate new end point
+            const snappedRad = closestAngle * (Math.PI / 180);
+            const newEnd = {
+                x: start.x + length * Math.cos(snappedRad),
+                y: start.y + length * Math.sin(snappedRad)
+            };
+
+            return { start, end: newEnd, snapped: minDiff < threshold };
+        }
+
+        // ========== Create Clean Shapes ==========
+
+        function createCleanShape(detected, stroke) {
+            const { color, width } = stroke;
+
+            switch (detected.type) {
+                case 'circle': {
+                    const { bounds } = detected;
+                    const radius = Math.max(bounds.width, bounds.height) / 2;
+                    return {
+                        type: 'circle',
+                        x: bounds.centerX,
+                        y: bounds.centerY,
+                        radius,
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                case 'rectangle': {
+                    const b = detected.bounds;
+                    return {
+                        type: 'rectangle',
+                        x: b.x,
+                        y: b.y,
+                        width: b.width,
+                        height: b.height,
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                case 'triangle': {
+                    // Use detected corners or find them
+                    let corners = detected.corners || findCorners(stroke.points, 3);
+                    if (corners.length < 3) {
+                        // Fallback: use start, furthest point, and another extreme
+                        const bounds = getBounds(stroke.points);
+                        corners = [
+                            { x: bounds.x, y: bounds.y + bounds.height },
+                            { x: bounds.centerX, y: bounds.y },
+                            { x: bounds.x + bounds.width, y: bounds.y + bounds.height }
+                        ];
+                    }
+                    return {
+                        type: 'triangle',
+                        points: corners.slice(0, 3),
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                case 'line': {
+                    const snapped = snapLineToAngle(detected.start, detected.end);
+                    return {
+                        type: 'line',
+                        x1: snapped.start.x,
+                        y1: snapped.start.y,
+                        x2: snapped.end.x,
+                        y2: snapped.end.y,
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                case 'arrow': {
+                    const snapped = snapLineToAngle(detected.start, detected.end);
+                    return {
+                        type: 'arrow',
+                        x1: snapped.start.x,
+                        y1: snapped.start.y,
+                        x2: snapped.end.x,
+                        y2: snapped.end.y,
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                case 'curve': {
+                    return {
+                        type: 'curve',
+                        points: detected.points,
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                case 'polygon': {
+                    return {
+                        type: 'polygon',
+                        points: detected.points,
+                        color,
+                        lineWidth: width
+                    };
+                }
+
+                default: {
+                    return {
+                        type: 'freehand',
+                        points: smoothPoints(stroke.points),
+                        color,
+                        lineWidth: width
+                    };
+                }
+            }
+        }
+
+        // ========== Drawing Functions ==========
+
+        function redraw() {
+            const dpr = window.devicePixelRatio || 1;
+            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
+            // Draw finalized shapes
+            for (const shape of shapes) {
+                drawShape(shape);
+            }
+
+            // Draw current stroke (raw)
+            if (currentStroke && currentStroke.points.length > 1) {
+                ctx.strokeStyle = currentStroke.color;
+                ctx.lineWidth = currentStroke.width;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 0.4; // Dim while drawing
+
+                ctx.beginPath();
+                ctx.moveTo(currentStroke.points[0].x, currentStroke.points[0].y);
+                for (let i = 1; i < currentStroke.points.length; i++) {
+                    ctx.lineTo(currentStroke.points[i].x, currentStroke.points[i].y);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+
+                // Draw preview of detected shape
+                if (smartMode && currentStroke.points.length > 15) {
+                    const detected = detectShape(currentStroke.points);
+                    drawShapePreview(detected, currentStroke);
+                }
+            }
+        }
+
+        function drawShape(shape) {
+            ctx.strokeStyle = shape.color;
+            ctx.fillStyle = 'transparent';
+            ctx.lineWidth = shape.lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            switch (shape.type) {
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+
+                case 'rectangle':
+                    ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+                    break;
+
+                case 'triangle':
+                    if (shape.points && shape.points.length >= 3) {
+                        ctx.beginPath();
+                        ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                        ctx.lineTo(shape.points[1].x, shape.points[1].y);
+                        ctx.lineTo(shape.points[2].x, shape.points[2].y);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x1, shape.y1);
+                    ctx.lineTo(shape.x2, shape.y2);
+                    ctx.stroke();
+                    break;
+
+                case 'arrow':
+                    // Line
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x1, shape.y1);
+                    ctx.lineTo(shape.x2, shape.y2);
+                    ctx.stroke();
+
+                    // Arrow head
+                    const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
+                    const headLen = 12 + shape.lineWidth * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x2, shape.y2);
+                    ctx.lineTo(
+                        shape.x2 - headLen * Math.cos(angle - Math.PI/6),
+                        shape.y2 - headLen * Math.sin(angle - Math.PI/6)
+                    );
+                    ctx.moveTo(shape.x2, shape.y2);
+                    ctx.lineTo(
+                        shape.x2 - headLen * Math.cos(angle + Math.PI/6),
+                        shape.y2 - headLen * Math.sin(angle + Math.PI/6)
+                    );
+                    ctx.stroke();
+                    break;
+
+                case 'curve':
+                case 'polygon':
+                    if (!shape.points || shape.points.length < 2) break;
+                    ctx.beginPath();
+                    ctx.moveTo(shape.points[0].x, shape.points[0].y);
+
+                    if (shape.points.length === 2) {
+                        ctx.lineTo(shape.points[1].x, shape.points[1].y);
+                    } else {
+                        // Smooth curve through points using quadratic bezier
+                        for (let i = 1; i < shape.points.length - 1; i++) {
+                            const xc = (shape.points[i].x + shape.points[i+1].x) / 2;
+                            const yc = (shape.points[i].y + shape.points[i+1].y) / 2;
+                            ctx.quadraticCurveTo(shape.points[i].x, shape.points[i].y, xc, yc);
+                        }
+                        const last = shape.points[shape.points.length - 1];
+                        ctx.lineTo(last.x, last.y);
+                    }
+
+                    if (shape.type === 'polygon') {
+                        ctx.closePath();
+                    }
+                    ctx.stroke();
+                    break;
+
+                case 'freehand':
+                    if (!shape.points || shape.points.length < 2) break;
+                    ctx.beginPath();
+                    ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                    for (let i = 1; i < shape.points.length; i++) {
+                        ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                    }
+                    ctx.stroke();
+                    break;
+            }
+        }
+
+        function drawShapePreview(detected, stroke) {
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.width;
+            ctx.setLineDash([5, 5]);
+            ctx.globalAlpha = 0.6;
+
+            switch (detected.type) {
+                case 'circle': {
+                    const { bounds } = detected;
+                    const radius = Math.max(bounds.width, bounds.height) / 2;
+                    ctx.beginPath();
+                    ctx.arc(bounds.centerX, bounds.centerY, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                }
+
+                case 'rectangle': {
+                    const b = detected.bounds;
+                    ctx.strokeRect(b.x, b.y, b.width, b.height);
+                    break;
+                }
+
+                case 'triangle': {
+                    const corners = detected.corners || findCorners(stroke.points, 3);
+                    if (corners.length >= 3) {
+                        ctx.beginPath();
+                        ctx.moveTo(corners[0].x, corners[0].y);
+                        ctx.lineTo(corners[1].x, corners[1].y);
+                        ctx.lineTo(corners[2].x, corners[2].y);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                    break;
+                }
+
+                case 'line':
+                case 'arrow':
+                    ctx.beginPath();
+                    ctx.moveTo(detected.start.x, detected.start.y);
+                    ctx.lineTo(detected.end.x, detected.end.y);
+                    ctx.stroke();
+                    break;
+            }
+
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1;
+        }
+
+        // ========== UI Functions ==========
+
+        function updateShapeHint(detected) {
+            shapeHint.textContent = `${getShapeEmoji(detected.type)} ${detected.type}`;
+            shapeHint.classList.add('visible');
+        }
+
+        function hideShapeHint() {
+            shapeHint.classList.remove('visible');
+        }
+
+        function getShapeEmoji(type) {
+            const emojis = {
+                circle: '⭕',
+                rectangle: '⬜',
+                triangle: '🔺',
+                line: '📏',
+                arrow: '➡️',
+                curve: '〰️',
+                polygon: '🔷',
+                freehand: '✏️',
+                dot: '•'
+            };
+            return emojis[type] || '✨';
+        }
+
+        function updateStrokeCount() {
+            const count = shapes.length;
+            document.getElementById('strokeCount').textContent = `${count} shape${count !== 1 ? 's' : ''}`;
+        }
+
+        function clearCanvas() {
+            if (shapes.length > 0) {
+                history.push(JSON.parse(JSON.stringify(shapes)));
+                if (history.length > 30) history.shift();
+            }
+            shapes = [];
+            redraw();
+            updateStrokeCount();
+            document.getElementById('detectedShape').textContent = '-';
+            showToast('🗑️ Canvas cleared', 'success');
+        }
+
+        function undo() {
+            if (history.length > 0) {
+                shapes = history.pop();
+                redraw();
+                updateStrokeCount();
+                showToast('↩️ Undone', 'success');
+            } else {
+                showToast('Nothing to undo', 'info');
+            }
+        }
+
+        function downloadCanvas() {
+            // Create a clean canvas for export (white background)
+            const exportCanvas = document.createElement('canvas');
+            const exportCtx = exportCanvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            exportCtx.scale(dpr, dpr);
+
+            // White background
+            exportCtx.fillStyle = '#fff';
+            exportCtx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
+            // Draw all shapes
+            for (const shape of shapes) {
+                drawShapeToContext(exportCtx, shape);
+            }
+
+            const link = document.createElement('a');
+            link.download = 'diagram.png';
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+            showToast('💾 Saved!', 'success');
+        }
+
+        function drawShapeToContext(ctx, shape) {
+            ctx.strokeStyle = shape.color;
+            ctx.fillStyle = 'transparent';
+            ctx.lineWidth = shape.lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Reuse drawShape logic (copy-paste for export context)
+            switch (shape.type) {
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(shape.x, shape.y, shape.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                case 'rectangle':
+                    ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+                    break;
+                case 'triangle':
+                    if (shape.points && shape.points.length >= 3) {
+                        ctx.beginPath();
+                        ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                        ctx.lineTo(shape.points[1].x, shape.points[1].y);
+                        ctx.lineTo(shape.points[2].x, shape.points[2].y);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                    break;
+                case 'line':
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x1, shape.y1);
+                    ctx.lineTo(shape.x2, shape.y2);
+                    ctx.stroke();
+                    break;
+                case 'arrow':
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x1, shape.y1);
+                    ctx.lineTo(shape.x2, shape.y2);
+                    ctx.stroke();
+                    const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
+                    const headLen = 12 + shape.lineWidth * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x2, shape.y2);
+                    ctx.lineTo(shape.x2 - headLen * Math.cos(angle - Math.PI/6), shape.y2 - headLen * Math.sin(angle - Math.PI/6));
+                    ctx.moveTo(shape.x2, shape.y2);
+                    ctx.lineTo(shape.x2 - headLen * Math.cos(angle + Math.PI/6), shape.y2 - headLen * Math.sin(angle + Math.PI/6));
+                    ctx.stroke();
+                    break;
+                case 'curve':
+                case 'polygon':
+                    if (!shape.points || shape.points.length < 2) break;
+                    ctx.beginPath();
+                    ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                    for (let i = 1; i < shape.points.length - 1; i++) {
+                        const xc = (shape.points[i].x + shape.points[i+1].x) / 2;
+                        const yc = (shape.points[i].y + shape.points[i+1].y) / 2;
+                        ctx.quadraticCurveTo(shape.points[i].x, shape.points[i].y, xc, yc);
+                    }
+                    ctx.lineTo(shape.points[shape.points.length - 1].x, shape.points[shape.points.length - 1].y);
+                    if (shape.type === 'polygon') ctx.closePath();
+                    ctx.stroke();
+                    break;
+                case 'freehand':
+                    if (!shape.points || shape.points.length < 2) break;
+                    ctx.beginPath();
+                    ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                    for (let i = 1; i < shape.points.length; i++) {
+                        ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                    }
+                    ctx.stroke();
+                    break;
+            }
+        }
+
+        // Color picker
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                currentColor = dot.dataset.color;
+            });
+        });
+
+        // Stroke width
+        document.querySelectorAll('.stroke-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.stroke-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                strokeWidth = parseInt(btn.dataset.width);
+            });
+        });
+
+        // Mode toggle
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                smartMode = btn.dataset.mode === 'smart';
+                showToast(smartMode ? '✨ Smart mode: shapes auto-detected!' : '✏️ Free draw mode', 'success');
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                downloadCanvas();
+            }
+        });
+
+        // Toast
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast visible ' + type;
+            setTimeout(() => toast.classList.remove('visible'), 2000);
+        }
+
+        // Initial toast
+        setTimeout(() => showToast('✨ Draw shapes - they auto-clean!', 'success'), 500);
+    </script>
+</body>
+</html>

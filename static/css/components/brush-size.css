@@ -1,0 +1,44 @@
+/* One compact nib control in the dock; fine controls live above it. */
+.floating-toolbar #brushSizeButton { width: 56px; min-width: 56px; gap: 4px; padding: 0 5px; display: flex; align-items: center; justify-content: center; }
+#brushSizeButton svg { width: 20px; height: 20px; flex: none; overflow: visible; }
+#brushSizeButton .brush-size-label { font: 600 10px/1 system-ui; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+#brushSizeButton[aria-expanded="true"] .brush-size-label { color: var(--accent); }
+#brushSizePanel { position: fixed; z-index: 1800; box-sizing: border-box; width: min(316px,calc(100vw - 24px)); border: 0; border-radius: 22px; background: var(--bg-secondary); color: var(--text-primary); box-shadow: 0 5px 14px #0002,0 22px 48px -16px #0005; font: 12px system-ui; overflow: hidden; }
+#brushSizePanel[hidden] { display: none; }
+#brushSizePanel header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 12px; gap: 12px; }
+.brush-size-heading { display: flex; flex-direction: column; gap: 4px; }
+.brush-size-heading strong { font-size: 15px; font-weight: 650; }
+.brush-size-heading small { color: var(--text-muted); font-size: 10px; }
+#brushSizePanel button { font: inherit; cursor: pointer; touch-action: manipulation; }
+#brushSizeClose { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: var(--text-muted); }
+#brushSizeClose svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+#brushSizeClose:hover { background: color-mix(in srgb,var(--text-primary) 7%,transparent); color: var(--text-primary); }
+.brush-size-body { padding: 0 18px 18px; display: flex; flex-direction: column; gap: 16px; overflow: auto; }
+.brush-size-preview { height: 94px; border-radius: 15px; background-color: var(--thumbnail-paper); background-image: radial-gradient(color-mix(in srgb,var(--text-primary) 14%,transparent) 1px,transparent 1px); background-size: 14px 14px; display: grid; place-items: center; }
+.brush-size-preview svg { width: 100%; height: 86px; overflow: visible; }
+.brush-size-presets { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; }
+.brush-size-preset { min-height: 48px; border: 0; border-radius: 11px; background: color-mix(in srgb,var(--text-primary) 5%,transparent); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 6px; }
+.brush-size-preset svg { width: 18px; height: 18px; }
+.brush-size-preset span { font-size: 10px; font-variant-numeric: tabular-nums; }
+.brush-size-preset:hover { background: color-mix(in srgb,var(--accent) 10%,var(--bg-secondary)); color: var(--accent); }
+.brush-size-preset[aria-pressed="true"] { background: color-mix(in srgb,var(--accent) 17%,var(--bg-secondary)); color: var(--accent); }
+.brush-size-adjustment { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; }
+#brushSizePanel .size-slider { display: block; width: 100%; min-width: 0; height: 5px; border-radius: 999px; background: color-mix(in srgb,var(--text-primary) 16%,transparent); accent-color: var(--accent); touch-action: pan-x; }
+#brushSizePanel .size-slider::-webkit-slider-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); box-shadow: 0 2px 5px #0003; }
+.brush-size-number-wrap { display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; }
+#brushSizeNumber { width: 48px; box-sizing: border-box; padding: 8px 4px; border: 0; border-radius: 9px; background: color-mix(in srgb,var(--text-primary) 6%,transparent); color: var(--text-primary); text-align: center; font: 600 12px system-ui; font-variant-numeric: tabular-nums; appearance: textfield; }
+#brushSizeNumber::-webkit-inner-spin-button { appearance: none; }
+#brushSizePanel #sizeValue { display: none; }
+.brush-pressure-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb,var(--text-primary) 8%,transparent); cursor: pointer; }
+.brush-pressure-copy { display: flex; flex-direction: column; gap: 4px; }
+.brush-pressure-copy strong { font-size: 11px; font-weight: 550; }
+.brush-pressure-copy small { color: var(--text-muted); font-size: 10px; }
+.brush-pressure-control { position: relative; flex: none; display: grid; place-items: center; width: 42px; height: 32px; }
+.brush-pressure-control input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 1; }
+.brush-pressure-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: color-mix(in srgb,var(--text-primary) 22%,transparent); transition: background .15s; }
+.brush-pressure-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #0003; transition: transform .15s; }
+.brush-pressure-control input:checked + .brush-pressure-track { background: var(--accent); }
+.brush-pressure-control input:checked + .brush-pressure-track::after { transform: translateX(14px); }
+.brush-pressure-control input:focus-visible + .brush-pressure-track { outline: 2px solid var(--accent); outline-offset: 3px; }
+#brushSizePanel button:focus-visible, #brushSizeNumber:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .brush-pressure-track,.brush-pressure-track::after { transition: none; } }

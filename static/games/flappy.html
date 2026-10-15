@@ -1,0 +1,117 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Flappy</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#9bbc0f;overflow:hidden;touch-action:none}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style>
+</head><body><canvas id="g"></canvas><script>
+(function(){
+const C=document.getElementById('g'),X=C.getContext('2d');
+let W,H;
+const PAL=['#0f380f','#306230','#8bac0f','#9bbc0f'];
+const gravity=0.0012,flapForce=-0.018,pipeW=0.12,gapH=0.28,pipeSpeed=0.003;
+let birdY,birdVY,birdR,pipes,score,best=0,over,started,frame;
+
+function resize(){W=C.width=C.clientWidth;H=C.height=C.clientHeight;}
+function reset(){
+  birdY=0.45;birdVY=0;birdR=Math.min(W,H)*0.03;
+  pipes=[];score=0;over=false;started=false;frame=0;
+}
+function addPipe(){
+  const gapY=0.2+Math.random()*0.45;
+  pipes.push({x:1.1,gapY,scored:false});
+}
+function flap(){birdVY=flapForce;}
+function tick(){
+  if(over||!started)return;
+  frame++;
+  birdVY+=gravity;birdY+=birdVY;
+  // pipes
+  if(frame%90===0)addPipe();
+  for(const p of pipes){
+    p.x-=pipeSpeed;
+    // scoring
+    if(!p.scored&&p.x+pipeW<0.15){p.scored=true;score++;}
+    // collision
+    const bx=0.15;
+    if(bx+birdR/W>p.x&&bx-birdR/W<p.x+pipeW){
+      if(birdY-birdR/H<p.gapY-gapH/2||birdY+birdR/H>p.gapY+gapH/2){
+        over=true;if(score>best)best=score;
+      }
+    }
+  }
+  pipes=pipes.filter(p=>p.x>-pipeW-0.1);
+  // floor/ceiling
+  if(birdY>1||birdY<0){over=true;if(score>best)best=score;}
+}
+function draw(){
+  X.fillStyle=PAL[3];X.fillRect(0,0,W,H);
+  if(!started&&!over){
+    X.fillStyle=PAL[0];X.font='bold '+Math.round(W/7)+'px monospace';X.textAlign='center';
+    X.fillText('FLAPPY',W/2,H/2-W/6);
+    X.font=Math.round(W/14)+'px monospace';
+    X.fillText('Press A',W/2,H/2+W/10);
+    if(best>0)X.fillText('Best: '+best,W/2,H/2+W/4);
+    return;
+  }
+  // ground
+  X.fillStyle=PAL[2];X.fillRect(0,H*0.95,W,H*0.05);
+  X.fillStyle=PAL[1];
+  for(let i=0;i<W;i+=12){X.fillRect(i,H*0.95,6,3);}
+  // pipes
+  X.fillStyle=PAL[0];
+  for(const p of pipes){
+    const px=p.x*W,pw=pipeW*W;
+    const topH=(p.gapY-gapH/2)*H;
+    const botY=(p.gapY+gapH/2)*H;
+    // top pipe
+    X.fillRect(px,0,pw,topH);
+    X.fillRect(px-3,topH-12,pw+6,12);
+    // bottom pipe
+    X.fillRect(px,botY,pw,H-botY);
+    X.fillRect(px-3,botY,pw+6,12);
+    // highlights
+    X.fillStyle=PAL[1];
+    X.fillRect(px+4,2,pw*0.3,topH-14);
+    X.fillRect(px+4,botY+14,pw*0.3,H-botY-14);
+    X.fillStyle=PAL[0];
+  }
+  // bird
+  const bx=0.15*W,byPx=birdY*H;
+  X.fillStyle=PAL[0];
+  X.beginPath();X.arc(bx,byPx,birdR,0,Math.PI*2);X.fill();
+  // eye
+  X.fillStyle=PAL[3];
+  X.beginPath();X.arc(bx+birdR*0.3,byPx-birdR*0.2,birdR*0.25,0,Math.PI*2);X.fill();
+  X.fillStyle=PAL[0];
+  X.beginPath();X.arc(bx+birdR*0.4,byPx-birdR*0.2,birdR*0.12,0,Math.PI*2);X.fill();
+  // wing
+  X.fillStyle=PAL[1];
+  const wingY=byPx+Math.sin(frame*0.15)*birdR*0.3;
+  X.beginPath();X.ellipse(bx-birdR*0.3,wingY,birdR*0.6,birdR*0.3,0,0,Math.PI*2);X.fill();
+  // score
+  X.fillStyle=PAL[0];X.font='bold '+Math.round(W/6)+'px monospace';X.textAlign='center';
+  X.fillText(score,W/2,H*0.12);
+  if(over){
+    X.fillStyle='rgba(155,188,15,0.88)';X.fillRect(0,0,W,H);
+    X.fillStyle=PAL[0];X.font='bold '+Math.round(W/7)+'px monospace';
+    X.fillText('GAME',W/2,H/2-W/6);X.fillText('OVER',W/2,H/2-W/20);
+    X.font=Math.round(W/12)+'px monospace';
+    X.fillText(score+' pts',W/2,H/2+W/8);
+    X.font=Math.round(W/18)+'px monospace';
+    X.fillText('Best: '+best,W/2,H/2+W/4.5);
+    X.fillText('Press A',W/2,H/2+W/3);
+  }
+}
+function input(btn){
+  if(btn==='a'||btn==='up'){
+    if(!started||over){reset();started=true;addPipe();flap();return;}
+    flap();
+  }
+}
+function loop(){tick();draw();requestAnimationFrame(loop);}
+resize();reset();requestAnimationFrame(loop);
+window.addEventListener('resize',resize);
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='gb-input')input(e.data.btn);});
+const kmap={ArrowUp:'up',w:'up',Enter:'a',' ':'a'};
+document.addEventListener('keydown',e=>{const b=kmap[e.key];if(b){e.preventDefault();input(b);}});
+C.addEventListener('pointerdown',()=>input('a'));
+})();
+</script></body></html>

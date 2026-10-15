@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync(require('node:path').join(__dirname,'../static/js/modules/03_canvas_core.js'),'utf8');
+const context=vm.createContext({Math,WeakMap,strokeCacheVersion:1,strokes:[],getRealtimePenControlPoints:()=>({firstControlPoints:[{x:-80,y:140}],secondControlPoints:[{x:180,y:-40}]})});
+vm.runInContext(source.slice(source.indexOf('        let nativeStrokeBounds ='),source.indexOf('        function releaseNativeInkSnapshot()')),context);
+const curve={tool:'pen',size:2,bounds:{x:0,y:0,w:100,h:100},points:[{x:0,y:0},{x:50,y:50,size:12},{x:100,y:100}]};
+const b=context.getNativeStrokeBounds(curve);
+assert(b.x<-80&&b.y<-40&&b.x+b.w>180&&b.y+b.h>140,'Control hull and maximum pressure width are conservative');
+assert.equal(context.getNativeStrokeBounds(curve),b,'Geometry bounds are cached, not scanned per frame');
+const circle=context.getNativeStrokeBounds({isShape:true,tool:'circle',size:2,points:[{x:-20,y:-40},{x:10,y:0}]});
+assert(circle.x<-70&&circle.y<-90&&circle.x+circle.w>30&&circle.y+circle.h>10,'Legacy circles include all four radius extents');
+assert.equal(context.getNativeStrokeBounds({isShape:true,isFill:true,tool:'arrow',size:2,points:[{x:0,y:0},{x:1,y:1}]}),null,'Unknown shape renderers retain uncropped coverage');
+assert.equal(context.getNativeStrokeBounds({tool:'highlighter',size:2,points:[{x:0,y:0},{x:1,y:1}]}),null);
+context.strokes=[curve];const all=context.getNativeInkBounds();assert.equal(all.x,b.x);
+context.strokes.push({tool:'pen',size:3,points:[{x:400,y:400}]});context.strokeCacheVersion++;
+assert(context.getNativeInkBounds().x+context.getNativeInkBounds().w>400,'Appending ink updates aggregate bounds');
+console.log('Native ink crop: conservative curves, pressure, negative circles, unknown-renderer fallback and append invalidation passed.');

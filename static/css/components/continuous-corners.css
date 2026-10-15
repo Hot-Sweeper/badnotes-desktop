@@ -1,0 +1,86 @@
+/* Continuous corners belong to rectangular surfaces, not circles and pills.
+ * Native curves keep their original layout and need no raster masks. */
+@supports (corner-shape: squircle) {
+    *, *::before, *::after { corner-shape: round; }
+    :is(.notebook-item, .notebook-cover, .page-paper, .modal, .modal-content,
+        .trash-dialog, .trash-item, .trash-item-visual, .notebook-create-preview,
+        .emblem-option, .template-option, .tool-btn, .window-control,
+        .notebook-edit, .notebook-delete, .settings-section,
+        .settings-nav button, .geometry-auto, .geometry-categories,
+        .geometry-categories button, .geometry-shapes button,
+        .geometry-actions button, .trash-item-actions button,
+        #geometryPanel, #brushSizePanel, #lassoActionMenu, #lassoOptions,
+        #addPageBtn, #newNotebookBtn, .brush-size-preset,
+        .brush-size-preview, input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+        select, textarea) { corner-shape: squircle; }
+}
+
+#recycleBinBtn, #toolboxBtn { border-radius: 50% !important; }
+.floating-toolbar { border-radius: 9999px !important; }
+
+/* Quiet, stationary shelf actions. Feedback is a soft color reveal, not lift. */
+#addPageBtn, #newNotebookBtn {
+    border: 0; border-radius: 18px; height: 36px; gap: 7px;
+    background: transparent !important;
+    color: var(--text-muted);
+    box-shadow: none; transform: none; position: relative; isolation: isolate;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    transition: color .16s cubic-bezier(.2,0,0,1);
+}
+#addPageBtn::before, #newNotebookBtn::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    border-radius: inherit; corner-shape: inherit; opacity: 0;
+}
+/* Opacity blends both solid dark fills and the light theme's subtle gradient.
+ * Animating background-image would switch abruptly between these states. */
+#addPageBtn::before, #newNotebookBtn::before { background: var(--shelf-action-bg); transition: opacity .18s cubic-bezier(.2,0,0,1); }
+#addPageBtn:is(:hover,:focus-visible,:active), #newNotebookBtn:is(:hover,:focus-visible,:active) {
+    background: transparent !important; color: var(--accent);
+    box-shadow: none; transform: none;
+}
+#addPageBtn:is(:hover,:focus-visible,:active)::before, #newNotebookBtn:is(:hover,:focus-visible,:active)::before { opacity: 1; }
+#addPageBtn.touch-feedback, #newNotebookBtn.touch-feedback { color: var(--accent); }
+#addPageBtn.touch-feedback::before, #newNotebookBtn.touch-feedback::before { opacity: 1; }
+/* Return to the quiet state after finger release, even if Chromium retains
+ * touchscreen :hover. Keyboard focus still receives its normal focus ring. */
+#addPageBtn[data-touch-input]:not(.touch-feedback):not(:focus-visible),
+#newNotebookBtn[data-touch-input]:not(.touch-feedback):not(:focus-visible) { color: var(--text-muted); }
+#addPageBtn[data-touch-input]:not(.touch-feedback):not(:focus-visible)::before,
+#newNotebookBtn[data-touch-input]:not(.touch-feedback):not(:focus-visible)::before { opacity: 0; }
+/* Touch uses the very same rounded layer/color as hover. Chromium's native
+ * tap overlay is disabled above; no second dark pressed rectangle is painted. */
+#addPageBtn:focus-visible, #newNotebookBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+    #addPageBtn, #newNotebookBtn, #addPageBtn::before, #newNotebookBtn::before { transition: none; }
+    #addPageBtn:hover, #newNotebookBtn:hover, #addPageBtn:active, #newNotebookBtn:active { transform: none; }
+}
+
+/* Hand-tuned rounded window glyphs with restrained, stationary feedback. */
+html.electron-desktop .window-control { border-radius: 10px; transition: background-color .16s cubic-bezier(.2,0,0,1), color .14s ease; }
+.window-control svg { width: 16px; height: 16px; stroke-width: 1.7; }
+.window-control .window-minimize-mark { fill: currentColor; stroke: none; }
+html[data-theme].electron-desktop .window-control:active { background: color-mix(in srgb,var(--text-primary) 12%,transparent); }
+html[data-theme].electron-desktop .window-control-close:hover { color: var(--color-error); background: color-mix(in srgb,var(--color-error) 12%,transparent); }
+html[data-theme].electron-desktop .window-control-close:active { color: var(--color-error); background: color-mix(in srgb,var(--color-error) 20%,transparent); }
+@media (prefers-reduced-motion: reduce) { html.electron-desktop .window-control { transition: none; } }
+
+/* Outline-free page preview trial; the active page is raised, not outlined. */
+.page-paper { border: 0 !important; outline: 0; border-radius: 22px; background: var(--thumbnail-paper); box-shadow: var(--thumbnail-shadow); }
+#pageList .page-thumb.active .page-paper { border: 0 !important; box-shadow: var(--thumbnail-active-shadow); }
+/* True-black paper needs a restrained edge, not a brighter fake paper fill.
+ * An outline leaves the preview's layout and native pixel size unchanged. */
+html[data-theme="oled"] .page-paper { outline: 1px solid rgba(255,255,255,.16); outline-offset: 0; }
+html[data-theme="oled"] #pageList .page-thumb.active .page-paper { outline-color: rgba(255,255,255,.23); }
+.page-paper .page-number { right: 9px; bottom: 9px; border-radius: 8px; background: var(--thumbnail-paper); color: color-mix(in srgb,var(--text-primary) 65%,var(--thumbnail-paper)); }
+#pageList .page-thumb.active .page-number { color: var(--accent); background: color-mix(in srgb,var(--accent) 12%,var(--thumbnail-paper)); }
+.page-grip { display: none !important; }
+
+/* Removing the hidden slot must not start the shelf's opacity transition.
+ * Keep this guard through the compositor handoff, then restore normal hover. */
+#pageList .page-thumb.spring-return-landed,
+#notebookList .notebook-item.spring-return-landed { transition: none !important; }
+
+/* A circular clip-path would cut off the squircle corners and the lift shadow. */
+#notebookList .notebook-item { border-radius: 22px; clip-path: none; }
+#notebookList .notebook-item.dragging-source { opacity: 0 !important; transform: none !important; transition: none !important; }
+.notebook-drag-clone.notebook-item { margin: 0; clip-path: none; animation: none !important; transition: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }

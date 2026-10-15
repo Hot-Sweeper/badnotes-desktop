@@ -1,0 +1,18 @@
+/* A receptive bin, not an endlessly shaking/pulsing alarm. No backdrop blur. */
+#recycleBinBtn { --trash-proximity: 0; --trash-impact-x: 0px; --trash-impact-y: 0px; --trash-impact-angle: 0deg; --trash-impact-scale: 1; transition: transform .22s cubic-bezier(.2,.8,.2,1),background .18s,color .18s,box-shadow .18s; }
+#recycleBinBtn::before { content: ''; position: absolute; inset: -10px; border: 1px solid color-mix(in srgb,var(--ui-accent) 34%,transparent); border-radius: 50%; corner-shape: round; background: color-mix(in srgb,var(--ui-accent) 4%,transparent); opacity: var(--trash-proximity); transform: scale(calc(.92 + var(--trash-proximity) * .08)); pointer-events: none; transition: opacity .18s,transform .22s; }
+#recycleBinBtn:is(.trash-near,.drag-over,.trash-incoming,.trash-reacting) { z-index: 10001; transform: translate3d(var(--trash-impact-x),var(--trash-impact-y),0) rotate(var(--trash-impact-angle)) scale(calc((1 + var(--trash-proximity) * .14) * var(--trash-impact-scale))); }
+html[data-theme] #recycleBinBtn:is(.drag-over,.trash-incoming) { transform: translate3d(var(--trash-impact-x),var(--trash-impact-y),0) rotate(var(--trash-impact-angle)) scale(calc(1.14 * var(--trash-impact-scale))); color: var(--ui-accent); background: var(--ui-accent-soft) !important; border-color: transparent !important; box-shadow: var(--ui-shadow),0 0 0 4px color-mix(in srgb,var(--ui-accent) 10%,transparent); animation: none; }
+#recycleBinBtn svg { animation: none !important; transform: none; }
+#recycleBinBtn .trash-lid { transform-origin: 19px 6px; transition: transform .22s cubic-bezier(.2,.8,.2,1); }
+#recycleBinBtn.trash-near .trash-lid { transform: translateY(-1px) rotate(-7deg); }
+#recycleBinBtn:is(.drag-over,.trash-incoming,.sucking) .trash-lid { transform: translateY(-2px) rotate(-20deg); }
+html[data-theme] #recycleBinBtn:is(.sucking,.trash-reacting) { z-index: 12001; animation: none; }
+html[data-theme] #recycleBinBtn.trash-reacting { transform: translate3d(var(--trash-impact-x),var(--trash-impact-y),0) rotate(var(--trash-impact-angle)) scale(var(--trash-impact-scale)); transition: background .18s,color .18s,box-shadow .18s; }
+#recycleBinBtn.trash-reacting .trash-lid { transform: translateY(calc(-2px * var(--trash-lid-open,0))) rotate(calc(-20deg * var(--trash-lid-open,0) + var(--trash-lid-wobble,0deg))); transition: none; }
+body.trash-drop-zone-active::after { content: none; }
+@media(prefers-reduced-motion: reduce) {
+    #recycleBinBtn,#recycleBinBtn::before,#recycleBinBtn .trash-lid { transition: none; }
+    html[data-theme] #recycleBinBtn:is(.trash-near,.drag-over,.trash-incoming,.sucking,.trash-reacting) { transform: none; animation: none; }
+    #recycleBinBtn .trash-lid { transform: none !important; }
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smoothing Algorithm Comparison</title>
+    <style>
+        body {
+            background-color: #1a1a2e;
+            color: #fff;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            background: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .canvas-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .test-case {
+            background: #16213e;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        canvas {
+            background: #0f3460;
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+        h3 { margin: 5px 0 10px 0; }
+        .metrics { font-size: 0.8em; color: #aaa; }
+    </style>
+</head>
+<body>
+    <h1>Smoothing Algorithm Comparison</h1>
+
+    <div class="controls">
+        <label>
+            Speed (Point Density):
+            <input type="range" id="speed" min="10" max="100" value="50">
+        </label>
+        <label>
+            Jitter (Noise):
+            <input type="range" id="jitter" min="0" max="10" value="2">
+        </label>
+        <button onclick="runTests()">Run Tests</button>
+    </div>
+
+    <div class="canvas-container">
+        <div class="test-case">
+            <h3>Raw Input</h3>
+            <canvas id="c_raw" width="300" height="300"></canvas>
+            <div class="metrics" id="m_raw"></div>
+        </div>
+        <div class="test-case">
+            <h3>Current (Cubic Bezier)</h3>
+            <canvas id="c_bezier" width="300" height="300"></canvas>
+            <div class="metrics" id="m_bezier"></div>
+        </div>
+        <div class="test-case">
+            <h3>Catmull-Rom</h3>
+            <canvas id="c_catmull" width="300" height="300"></canvas>
+            <div class="metrics" id="m_catmull"></div>
+        </div>
+        <div class="test-case">
+            <h3>Chaikin's Algorithm</h3>
+            <canvas id="c_chaikin" width="300" height="300"></canvas>
+            <div class="metrics" id="m_chaikin"></div>
+        </div>
+        <div class="test-case">
+            <h3>Hybrid (Avg + Chaikin)</h3>
+            <canvas id="c_hybrid" width="300" height="300"></canvas>
+            <div class="metrics" id="m_hybrid"></div>
+        </div>
+    </div>
+
+    <script src="test.js"></script>
+</body>
+</html>

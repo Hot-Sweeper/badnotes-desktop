@@ -1,0 +1,311 @@
+/* ==========================================================================
+   Drag and Drop Styles - Apple-style animations
+   ========================================================================== */
+
+/* ===== Global Dragging State ===== */
+body.is-dragging {
+    cursor: grabbing !important;
+    user-select: none;
+}
+
+body.is-dragging * {
+    cursor: grabbing !important;
+}
+
+/* ===== Draggable Elements ===== */
+.draggable-color,
+.draggable-page,
+.draggable-notebook {
+    cursor: grab;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+}
+
+.draggable-color:hover,
+.draggable-page:hover,
+.draggable-notebook:hover {
+    transform: scale(1.05);
+}
+
+.draggable-color.dragging,
+.draggable-page.dragging,
+.draggable-notebook.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+    cursor: grabbing;
+}
+
+/* ===== Drag Ghosts ===== */
+.drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10000;
+    transform: translate(-50%, -50%);
+    opacity: 0.95;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.4));
+}
+
+.drag-ghost-color .ghost-color {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.drag-ghost-page .ghost-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-primary);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.drag-ghost-page .ghost-page .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.drag-ghost-notebook .ghost-notebook {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--border-radius-md);
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.drag-ghost-notebook .ghost-notebook .icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* ===== Drop Indicators (Colors - Horizontal) ===== */
+.draggable-color.drag-before,
+.draggable-color.drag-after {
+    position: relative;
+}
+
+.draggable-color.drag-before::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 100%;
+    background: var(--color-accent-primary);
+    border-radius: 2px;
+    animation: dropIndicatorPulse 0.5s ease infinite;
+}
+
+.draggable-color.drag-after::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 100%;
+    background: var(--color-accent-primary);
+    border-radius: 2px;
+    animation: dropIndicatorPulse 0.5s ease infinite;
+}
+
+/* ===== Drop Indicators (Pages - Vertical) ===== */
+.draggable-page.drop-before,
+.draggable-page.drop-after {
+    position: relative;
+}
+
+.draggable-page.drop-before::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 3px;
+    width: 100%;
+    background: var(--color-accent-primary);
+    border-radius: 2px;
+    animation: dropIndicatorPulse 0.5s ease infinite;
+}
+
+.draggable-page.drop-after::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 3px;
+    width: 100%;
+    background: var(--color-accent-primary);
+    border-radius: 2px;
+    animation: dropIndicatorPulse 0.5s ease infinite;
+}
+
+@keyframes dropIndicatorPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ===== Canvas Drop Target ===== */
+.canvas-drop-target {
+    position: relative;
+}
+
+.canvas-drop-target::after {
+    content: 'Drop to fill';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 24px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--border-radius-md);
+    pointer-events: none;
+    animation: fadeIn 0.2s ease;
+    z-index: 100;
+}
+
+.canvas-drop-target .canvas-wrapper {
+    outline: 3px dashed var(--color-accent-primary);
+    outline-offset: -3px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ===== Reorder Animations ===== */
+.reorder-animation {
+    animation: reorderSlide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes reorderSlide {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ===== Color Swatch Specific ===== */
+.quick-colors {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.quick-color-btn {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background-color: var(--color);
+    cursor: grab;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.quick-color-btn:hover {
+    transform: scale(1.15);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.quick-color-btn.active {
+    border-color: white;
+    box-shadow: 0 0 0 2px var(--color-accent-primary);
+}
+
+.quick-color-btn.dragging {
+    opacity: 0.3;
+    transform: scale(0.9);
+}
+
+/* ===== Page Thumbnail Enhancements ===== */
+.page-thumbnail {
+    cursor: grab;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.page-thumbnail:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.page-thumbnail.dragging {
+    opacity: 0.3;
+    transform: scale(0.95);
+}
+
+/* ===== Notebook Item Enhancements ===== */
+.notebook-item {
+    cursor: grab;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.notebook-item:hover {
+    transform: translateX(4px);
+}
+
+.notebook-item.dragging {
+    opacity: 0.3;
+}
+
+/* ===== Fill Animation ===== */
+.canvas-fill-effect {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: fillExpand 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    z-index: 50;
+}
+
+@keyframes fillExpand {
+    0% {
+        transform: scale(0);
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ===== Preset Color Grid ===== */
+.presets-grid .preset-color {
+    cursor: grab;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.presets-grid .preset-color:hover {
+    transform: scale(1.2);
+    z-index: 1;
+}
+
+.presets-grid .preset-color.dragging {
+    opacity: 0.3;
+    transform: scale(0.9);
+}

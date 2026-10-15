@@ -1,0 +1,244 @@
+/* One surface hierarchy, three deliberately coordinated palettes.
+ * Brand/ink swatches are not recolored. Paper uses the same tokens in canvas
+ * and thumbnails. The surface-depth layer adds local frosting without
+ * changing these base palette/contrast roles. */
+:root, html[data-theme="dark"] {
+    --ui-action-solid: var(--brand-purple);
+    /* Iris defaults to the logo palette. Optional interface tones override
+       these same tokens for lasso, image/text and page-resize controls. */
+    --selection-accent: var(--brand-lilac);
+    --selection-highlight: var(--brand-pink);
+    --selection-surface: #302439;
+    color-scheme: dark;
+    --ui-surround: #111016;
+    --ui-shelf: #1b1922;
+    --ui-paper: #27242e;
+    --ui-surface: #302c3a;
+    --ui-field: #24212c;
+    --ui-hover: #3a3446;
+    --ui-selected: #433650;
+    --ui-notebook-selected: #332d3f;
+    --ui-text: #f3eff9;
+    --ui-secondary: #c0b7ce;
+    --ui-muted: #a69bb8;
+    --ui-disabled: #746b83;
+    --ui-accent: #c8afff;
+    --ui-accent-hover: #dfcaff;
+    --ui-accent-soft: #46345f;
+    --ui-border: #463d52;
+    --ui-divider: #3b3347;
+    --ui-success: #80cfaa;
+    --ui-warning: #edc38c;
+    --ui-error: #ee93aa;
+    --ui-info: #9cb9f1;
+    --ui-scrim: rgba(8,5,13,.56);
+    --ui-shadow: 0 4px 12px rgba(0,0,0,.18),0 14px 34px -12px rgba(0,0,0,.34);
+    --ui-sheet-shadow: 0 12px 44px -8px rgba(0,0,0,.48);
+    --ui-paper-shadow: 0 3px 12px rgba(0,0,0,.22);
+    --ui-paper-active-shadow: 0 5px 18px rgba(0,0,0,.30);
+    --ui-grid: rgba(212,198,238,.10);
+    --ui-dots: rgba(212,198,238,.20);
+    --ui-paper-edge: transparent;
+    --ui-thumbnail-edge: transparent;
+    --ui-thumbnail-active-edge: transparent;
+}
+html[data-theme="light"] {
+    --selection-accent: var(--brand-purple);
+    --selection-highlight: var(--brand-orchid);
+    --selection-surface: var(--brand-paper);
+    color-scheme: light;
+    --ui-surround: #e4e1eb;
+    --ui-shelf: #f0edf5;
+    --ui-paper: #ffffff;
+    --ui-surface: #fbfaff;
+    --ui-field: #eeebf4;
+    --ui-hover: #e9e5f0;
+    --ui-selected: #e4dcf6;
+    --ui-notebook-selected: #ffffff;
+    --ui-text: #292333;
+    --ui-secondary: #655d74;
+    --ui-muted: #70677d;
+    --ui-disabled: #a29aaa;
+    --ui-accent: #6a35dc;
+    --ui-accent-hover: #5425c0;
+    --ui-accent-soft: #e9dffb;
+    --ui-border: #ded8e8;
+    --ui-divider: #e5dfed;
+    --ui-success: #267657;
+    --ui-warning: #976322;
+    --ui-error: #b93d5e;
+    --ui-info: #476da7;
+    --ui-scrim: rgba(34,22,54,.27);
+    --ui-shadow: 0 3px 10px rgba(36,21,58,.045),0 12px 30px -12px rgba(36,21,58,.16);
+    --ui-sheet-shadow: 0 14px 48px -10px rgba(36,21,58,.22);
+    --ui-paper-shadow: 0 3px 10px rgba(36,21,58,.07);
+    --ui-paper-active-shadow: 0 5px 18px rgba(36,21,58,.12);
+    --ui-grid: rgba(65,51,94,.10);
+    --ui-dots: rgba(65,51,94,.22);
+}
+html[data-theme="oled"] {
+    --selection-surface: #201527;
+    color-scheme: dark;
+    --ui-surround: #000000;
+    --ui-shelf: #0d0b11;
+    --ui-paper: #000000;
+    --ui-surface: #19151f;
+    --ui-field: #100d15;
+    --ui-hover: #282131;
+    --ui-selected: #352943;
+    --ui-notebook-selected: #251e30;
+    --ui-text: #f1ebf8;
+    --ui-secondary: #bdb0cd;
+    --ui-muted: #a397b4;
+    --ui-disabled: #71627f;
+    --ui-accent: #cfb5ff;
+    --ui-accent-hover: #e4cffc;
+    --ui-accent-soft: #30233f;
+    --ui-border: #352b40;
+    --ui-divider: #292131;
+    --ui-success: #86d2b0;
+    --ui-warning: #f0c790;
+    --ui-error: #f09bb1;
+    --ui-info: #a3bdf4;
+    --ui-scrim: rgba(0,0,0,.66);
+    --ui-shadow: 0 4px 18px rgba(0,0,0,.38);
+    --ui-sheet-shadow: 0 12px 48px rgba(0,0,0,.65);
+    --ui-grid: rgba(204,182,231,.11);
+    --ui-dots: rgba(204,182,231,.19);
+    --ui-paper-edge: #221c2a;
+    --ui-thumbnail-edge: #3b3148;
+    --ui-thumbnail-active-edge: #55485f;
+}
+
+/* Bridge both generations of theme variables to the same semantic roles. */
+:root, body.light-theme {
+    --bg-primary: var(--ui-surround);
+    --bg-secondary: var(--ui-surface);
+    --bg-tertiary: var(--ui-field);
+    --bg-elevated: var(--ui-surface);
+    --bg-hover: var(--ui-hover);
+    --text-primary: var(--ui-text);
+    --text-secondary: var(--ui-secondary);
+    --text-muted: var(--ui-muted);
+    --border: var(--ui-border);
+    --accent: var(--ui-accent);
+    --accent-hover: var(--ui-accent-hover);
+    --success: var(--ui-success); --warning: var(--ui-warning); --error: var(--ui-error);
+    --color-bg-primary: var(--ui-surround);
+    --color-bg-secondary: var(--ui-surface);
+    --color-bg-tertiary: var(--ui-field);
+    --color-bg-elevated: var(--ui-surface);
+    --color-bg-hover: var(--ui-hover);
+    --color-bg-active: var(--ui-selected);
+    --color-text-primary: var(--ui-text);
+    --color-text-secondary: var(--ui-secondary);
+    --color-text-tertiary: var(--ui-muted);
+    --color-text-disabled: var(--ui-disabled);
+    --color-accent-primary: var(--ui-accent);
+    --color-accent-hover: var(--ui-accent-hover);
+    --color-accent-light: var(--ui-accent-soft);
+    --color-success: var(--ui-success); --color-warning: var(--ui-warning);
+    --color-error: var(--ui-error); --color-info: var(--ui-info);
+    --color-border: var(--ui-border); --color-border-light: var(--ui-divider);
+    --color-border-focus: var(--ui-accent);
+    --color-canvas-bg: var(--ui-surround);
+    --color-canvas-paper: var(--ui-paper);
+    --color-canvas-grid: var(--ui-grid); --color-canvas-lines: var(--ui-grid);
+    --template-line-color: var(--ui-grid); --template-dot-color: var(--ui-dots);
+    --canvas-bg: var(--ui-paper);
+    --shelf-background: var(--ui-shelf);
+    --thumbnail-paper: var(--ui-paper);
+    --thumbnail-shadow: var(--ui-paper-shadow);
+    --thumbnail-active-shadow: var(--ui-paper-active-shadow);
+    --shelf-action-bg: var(--ui-accent-soft);
+    --shelf-action-hover-bg: var(--ui-selected);
+    --backdrop-blur: none;
+    --glass-blur: none; --glass-blur-light: none; --glass-blur-subtle: none;
+    --app-scroll-thumb: color-mix(in srgb,var(--ui-muted) 40%,transparent);
+    --app-scroll-hover: color-mix(in srgb,var(--ui-muted) 65%,transparent);
+}
+
+/* Same material for the dock, clock, floating actions and anchored palettes.
+ * No unrelated blue/red glass glows or scene-dependent backdrop colors. */
+html[data-theme] :is(.floating-toolbar,.recycle-bin-btn,.toolbox-btn,.digital-clock,.panel-toggle-btn) {
+    background: var(--ui-surface) !important; background-image: none !important;
+    color: var(--ui-secondary); border-color: var(--ui-border) !important;
+    box-shadow: var(--ui-shadow);
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+html[data-theme] :is(.floating-toolbar,.digital-clock):hover { box-shadow: var(--ui-shadow); }
+html[data-theme] :is(.recycle-bin-btn,.toolbox-btn,.panel-toggle-btn):hover {
+    background: var(--ui-hover) !important; color: var(--ui-text);
+    border-color: var(--ui-border) !important; box-shadow: var(--ui-shadow);
+}
+/* Shelf handles are anchored, not magnetic. Idle chrome reduces to a faint
+ * chevron; its full-size touch target remains available without a reveal tap. */
+html[data-theme] .panel-toggle-btn {
+    transform:none !important;
+    transition:opacity .24s ease,background-color .16s ease,color .16s ease,box-shadow .16s ease;
+    -webkit-tap-highlight-color:transparent;
+}
+html[data-theme] .panel-toggle-btn.visible:not(.shelf-handle-awake):not(:focus-visible) {
+    opacity:.22;background:transparent !important;border-color:transparent !important;box-shadow:none;
+}
+html[data-theme] .panel-toggle-btn.shelf-handle-awake,html[data-theme] .panel-toggle-btn:focus-visible {opacity:1;}
+html[data-theme] .panel-toggle-btn:focus-visible {outline:2px solid var(--ui-accent);outline-offset:3px;}
+@media(prefers-reduced-motion:reduce) {html[data-theme] .panel-toggle-btn {transition:none !important;}}
+html[data-theme] :is(.modal,.modal-content,.toolbox-drawer,.dropdown-menu,.context-menu,.toast,#geometryPanel,#brushSizePanel,#lassoActionMenu,#lassoOptions) {
+    background: var(--ui-surface) !important; background-image: none !important;
+    color: var(--ui-text); border-color: var(--ui-border); box-shadow: var(--ui-sheet-shadow);
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+html[data-theme] :is(.modal-overlay,.radial-menu-backdrop) { background: var(--ui-scrim); backdrop-filter: none; }
+html[data-theme] :is(.modal-header,.modal-footer,.toolbox-drawer-header) { border-color: var(--ui-divider); }
+html[data-theme] :is(#sidebar,#pageNav,.sidebar-actions,.page-nav-header) { border-color: var(--ui-divider) !important; }
+html[data-theme] .btn-primary, html[data-theme] .btn-accent { background: var(--brand-fill); color: #ffffff; }
+html[data-theme] :is(.btn-primary,.btn-accent):hover { background: var(--brand-fill-hover); color: #ffffff; }
+html[data-theme] .top-clock-time { color: var(--ui-text); }
+html[data-theme] :is(.top-clock-date,.top-clock-status) { color: var(--ui-muted); }
+html[data-theme] .floating-toolbar :is(.tool-btn,.toolbar-drag-handle,.toolbar-collapse-btn,.add-color-btn) { color: var(--ui-secondary); }
+html[data-theme] .floating-toolbar .tool-btn:hover { background: var(--ui-hover); color: var(--ui-text); }
+html[data-theme] .floating-toolbar .tool-btn:is(.active,[aria-expanded="true"]) {
+    background: var(--ui-accent-soft); color: var(--ui-accent);
+    border-color: transparent; box-shadow: none;
+}
+html[data-theme] .floating-toolbar :is(.toolbar-separator,.divider) { background: var(--ui-divider); }
+html[data-theme] :is(.toolbar-drag-handle,.toolbar-collapse-btn):hover { background: var(--ui-hover); }
+html[data-theme] #notebookList .notebook-item:hover { background: var(--ui-hover) !important; }
+html[data-theme] #notebookList .notebook-item.active { background: var(--ui-notebook-selected) !important; }
+html[data-theme] .page-nav-title, html[data-theme] .page-nav-indicator { color: var(--ui-muted); }
+html[data-theme].electron-desktop .window-control { color: var(--ui-secondary); }
+html[data-theme].electron-desktop .window-control:hover { color: var(--ui-text); background: var(--ui-hover); }
+html[data-theme] .window-control-close:hover { color: var(--ui-error); background: color-mix(in srgb,var(--ui-error) 12%,transparent); }
+html[data-theme] #recycleBinBtn.drag-over { background: var(--ui-accent-soft) !important; color: var(--ui-accent); }
+html[data-theme] #toolboxBtn.active { background: var(--ui-accent-soft) !important; color: var(--ui-accent); border-color: var(--ui-border); box-shadow: var(--ui-shadow); }
+html[data-theme="oled"] .page-paper { outline-color: var(--ui-thumbnail-edge); }
+html[data-theme="oled"] #pageList .page-thumb.active .page-paper { outline-color: var(--ui-thumbnail-active-edge); }
+html[data-theme] :is(.btn-secondary,.geometry-categories,.recycle-tabs,.brush-size-preset),
+html[data-theme] #brushSizeNumber { background: var(--ui-field); color: var(--ui-secondary); }
+html[data-theme] :is(.btn-secondary,.brush-size-preset):hover { background: var(--ui-hover); color: var(--ui-text); }
+html[data-theme] .brush-size-preset[aria-pressed="true"] { background: var(--ui-accent-soft); color: var(--ui-accent); }
+html[data-theme] .eraser-mode.active { background: var(--ui-accent-soft); color: var(--ui-accent); }
+html[data-theme] .brush-pressure-control input:checked + .brush-pressure-track { background: var(--ui-action-solid); }
+html[data-theme] .radial-center, html[data-theme] .radial-slice-path { fill: var(--ui-surface); stroke: var(--ui-border); }
+html[data-theme] .radial-center:hover { fill: var(--ui-hover); stroke: var(--ui-accent); }
+html[data-theme] .radial-slice.hovered .radial-slice-path { fill: var(--ui-accent-soft); stroke: var(--ui-accent); }
+html[data-theme] :is(.radial-center-text,.radial-slice-icon,.radial-slice-label) { fill: var(--ui-text); }
+html[data-theme] .radial-menu.open .radial-center-text { fill: var(--ui-text); }
+html[data-theme] .radial-slice.hovered .radial-slice-icon { fill: var(--ui-accent); }
+html[data-theme] .radial-slice-label { stroke: var(--ui-surface); }
+html[data-theme] :is(input[type="checkbox"],input[type="radio"],input[type="range"]) { accent-color: var(--ui-action-solid); }
+html[data-theme] .selection-box { border-color:var(--selection-accent);background:color-mix(in srgb,var(--selection-accent) 10%,transparent); }
+html[data-theme] .selection-handle { background:var(--selection-accent);border-color:var(--selection-surface); }
+html[data-theme] #trashSearch:focus { outline-color:color-mix(in srgb,var(--ui-accent) 40%,transparent); }
+html[data-theme] #textfield-settings-panel { background:var(--ui-surface);border-color:var(--ui-border);color:var(--ui-text);box-shadow:var(--ui-sheet-shadow);backdrop-filter:none; }
+html[data-theme] .tf-settings-header { color:var(--ui-text);border-color:var(--ui-divider); }
+html[data-theme] .tf-settings-close { color:var(--ui-secondary); }
+html[data-theme] .tf-setting-row label { color:var(--ui-muted); }
+html[data-theme] .tf-setting-row .tf-value { color:var(--ui-accent); }
+html[data-theme] .tf-setting-row input[type="range"] { accent-color:var(--ui-action-solid); }
+html[data-theme] .tf-settings-btn { background:var(--ui-action-solid);border-color:transparent;color:#fff; }
+html[data-theme] .tf-settings-btn:hover { background:var(--brand-fill-hover);border-color:transparent; }
+html[data-theme] .tf-settings-btn:disabled { background:var(--ui-field);border-color:var(--ui-border);color:var(--ui-disabled); }
+html[data-theme] .tf-settings-reset { background:var(--ui-field);border-color:var(--ui-border);color:var(--ui-secondary); }
+html[data-theme] .tf-settings-reset:hover { background:var(--ui-hover);border-color:var(--ui-accent);color:var(--ui-text); }

@@ -1,0 +1,465 @@
+/* ==========================================================================
+   Recycling Bin Component Styles
+   ========================================================================== */
+
+/* ===== Recycling Bin Icon (Bottom Left) ===== */
+.recycling-bin {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999;
+    cursor: pointer;
+}
+
+.recycling-bin-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: rgba(50, 50, 50, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+}
+
+.recycling-bin-icon .icon {
+    width: 28px;
+    height: 28px;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.recycling-bin:hover .recycling-bin-icon {
+    transform: scale(1.1);
+    border-color: var(--accent);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25), 0 0 20px rgba(var(--brand-accent-rgb), 0.3);
+}
+
+.recycling-bin:hover .recycling-bin-icon .icon {
+    color: var(--accent);
+}
+
+/* Count badge */
+.recycling-bin-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: var(--error);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 11px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+/* Drag over state */
+.recycling-bin.drag-over .recycling-bin-icon {
+    transform: scale(1.25);
+    border-color: var(--error);
+    background: color-mix(in srgb, var(--error) 20%, var(--bg-secondary));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 82, 82, 0.4);
+}
+
+.recycling-bin.drag-over .recycling-bin-icon .icon {
+    color: white;
+    animation: shake 0.3s ease infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+}
+
+/* Receive animation */
+.recycling-bin.receive .recycling-bin-icon {
+    animation: receive-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes receive-bounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.4); }
+    60% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+/* Has items state */
+.recycling-bin.has-items .recycling-bin-icon {
+    border-color: var(--accent);
+}
+
+.recycling-bin.has-items .recycling-bin-icon .icon {
+    color: var(--accent);
+}
+
+/* ===== Recycling Bin Modal ===== */
+.recycling-bin-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.recycling-bin-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.recycling-bin-modal .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.recycling-bin-panel {
+    position: relative;
+    width: 500px;
+    max-width: 95vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    background: rgba(35, 35, 35, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+.recycling-bin-panel > * {
+    position: relative;
+    z-index: 1;
+}
+
+.recycling-bin-modal.show .recycling-bin-panel {
+    transform: translateY(0) scale(1);
+}
+
+/* Modal Header */
+.recycling-bin-panel .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.recycling-bin-panel .modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.recycling-bin-panel .modal-close-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--color-text-secondary);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recycling-bin-panel .modal-close-btn:hover {
+    background: var(--glass-bg-hover);
+    color: var(--color-text-primary);
+}
+
+/* ===== Tabs ===== */
+.recycling-bin-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 20px;
+    border-bottom: 1px solid #3a3a5c;
+}
+
+.recycling-tab {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #8888a0;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.recycling-tab:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.recycling-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.tab-count {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: #3a3a5c;
+    border-radius: 10px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recycling-tab.active .tab-count {
+    background: var(--brand-fill);
+    color: white;
+}
+
+/* ===== Content ===== */
+.recycling-bin-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    min-height: 200px;
+    max-height: 400px;
+}
+
+.recycling-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ===== Item ===== */
+.recycling-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #252542;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.recycling-item:hover {
+    background: #3a3a5c;
+    transform: translateX(4px);
+}
+
+.recycling-item-preview {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.recycling-item-preview.notebook-preview {
+    border-radius: 6px;
+}
+
+.recycling-item-preview.notebook-preview .icon {
+    width: 24px;
+    height: 24px;
+}
+
+.recycling-item-preview.page-preview {
+    background: #1a1a2e;
+    border: 1px solid #3a3a5c;
+}
+
+.recycling-item-preview.page-preview .icon {
+    width: 20px;
+    height: 20px;
+    color: #8888a0;
+}
+
+.recycling-item-preview.color-preview {
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.recycling-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.recycling-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recycling-item-meta {
+    font-size: 12px;
+    color: #8888a0;
+}
+
+.recycling-item-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.recycling-item:hover .recycling-item-actions {
+    opacity: 1;
+}
+
+.recycling-item-actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recycling-item-actions .btn.secondary {
+    background: #3a3a5c;
+    color: white;
+}
+
+.recycling-item-actions .btn.secondary:hover {
+    background: #4a4a6a;
+}
+
+.recycling-item-actions .btn.danger {
+    background: #ff4444;
+    color: white;
+}
+
+.recycling-item-actions .btn.danger:hover {
+    background: #ff6666;
+}
+
+/* ===== Empty State ===== */
+.recycling-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    color: #8888a0;
+    text-align: center;
+}
+
+.recycling-empty-state .icon {
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+}
+
+.recycling-empty-state p {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* ===== Footer ===== */
+.recycling-bin-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #3a3a5c;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.recycling-bin-footer .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.recycling-bin-footer .btn.danger {
+    background: #ff4444;
+    color: white;
+}
+
+.recycling-bin-footer .btn.danger:hover {
+    background: #ff6666;
+}
+
+/* ===== Dragging Colors ===== */
+.quick-color-btn {
+    cursor: grab;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.quick-color-btn:hover {
+    transform: scale(1.15);
+    z-index: 1;
+}
+
+.quick-color-btn.dragging {
+    opacity: 0.4;
+    transform: scale(0.9);
+    cursor: grabbing;
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+    .recycling-bin {
+        bottom: 80px;
+        left: 15px;
+    }
+
+    .recycling-bin-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .recycling-bin-icon .icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .recycling-item-actions {
+        opacity: 1;
+    }
+}

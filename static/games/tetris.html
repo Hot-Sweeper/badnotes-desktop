@@ -1,0 +1,141 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Tetris</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#9bbc0f;overflow:hidden;touch-action:none}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style>
+</head><body><canvas id="g"></canvas><script>
+(function(){
+const C=document.getElementById('g'),X=C.getContext('2d');
+let W,H,cols=10,rows=20,cw,ch,offX,offY,fieldW,fieldH;
+const PAL=['#0f380f','#306230','#8bac0f','#9bbc0f'];
+const SHAPES=[
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]],
+  [[0,0,1],[1,1,1]],
+  [[0,1,1],[1,1,0]],
+  [[1,1,0],[0,1,1]]
+];
+let grid,piece,px,py,nextPiece,score,level,lines,over,started,lastDrop,dropInterval;
+
+function resize(){
+  W=C.width=C.clientWidth;H=C.height=C.clientHeight;
+  ch=Math.floor(H*0.92/rows);cw=ch;
+  fieldW=cols*cw;fieldH=rows*ch;
+  offX=Math.floor((W-fieldW)/2);offY=Math.floor((H-fieldH)/2);
+}
+function reset(){
+  grid=Array.from({length:rows},()=>Array(cols).fill(0));
+  score=0;level=1;lines=0;over=false;started=false;
+  nextPiece=randPiece();spawnPiece();
+  dropInterval=500;lastDrop=0;
+}
+function randPiece(){return JSON.parse(JSON.stringify(SHAPES[Math.floor(Math.random()*SHAPES.length)]));}
+function spawnPiece(){
+  piece=nextPiece;nextPiece=randPiece();
+  px=Math.floor((cols-piece[0].length)/2);py=0;
+  if(collides(piece,px,py)){over=true;if(!started)over=false;}
+}
+function rotate(p){
+  const r=p[0].map((_,i)=>p.map(row=>row[i]).reverse());
+  if(!collides(r,px,py))piece=r;
+}
+function collides(p,tx,ty){
+  for(let y=0;y<p.length;y++)for(let x=0;x<p[y].length;x++)
+    if(p[y][x]){
+      const nx=tx+x,ny=ty+y;
+      if(nx<0||nx>=cols||ny>=rows)return true;
+      if(ny>=0&&grid[ny][nx])return true;
+    }
+  return false;
+}
+function lock(){
+  for(let y=0;y<piece.length;y++)for(let x=0;x<piece[y].length;x++)
+    if(piece[y][x]&&py+y>=0)grid[py+y][px+x]=1;
+  clearLines();spawnPiece();
+}
+function clearLines(){
+  let cleared=0;
+  for(let y=rows-1;y>=0;y--){
+    if(grid[y].every(c=>c)){grid.splice(y,1);grid.unshift(Array(cols).fill(0));cleared++;y++;}
+  }
+  if(cleared){lines+=cleared;score+=cleared*cleared*100;level=Math.floor(lines/10)+1;dropInterval=Math.max(80,500-level*40);}
+}
+function drop(){
+  if(!collides(piece,px,py+1))py++;
+  else lock();
+}
+function hardDrop(){while(!collides(piece,px,py+1))py++;lock();}
+function moveLeft(){if(!collides(piece,px-1,py))px--;}
+function moveRight(){if(!collides(piece,px+1,py))px++;}
+
+function draw(){
+  X.fillStyle=PAL[3];X.fillRect(0,0,W,H);
+  if(!started){
+    X.fillStyle=PAL[0];X.font='bold '+Math.round(W/7)+'px monospace';X.textAlign='center';
+    X.fillText('TETRIS',W/2,H/2-W/6);
+    X.font=Math.round(W/16)+'px monospace';
+    X.fillText('Press A',W/2,H/2+W/12);
+    return;
+  }
+  // field border
+  X.strokeStyle=PAL[0];X.lineWidth=2;
+  X.strokeRect(offX-2,offY-2,fieldW+4,fieldH+4);
+  // field bg
+  X.fillStyle=PAL[2];X.fillRect(offX,offY,fieldW,fieldH);
+  // grid lines
+  X.strokeStyle='rgba(155,188,15,0.5)';X.lineWidth=0.5;
+  for(let x=0;x<=cols;x++){X.beginPath();X.moveTo(offX+x*cw,offY);X.lineTo(offX+x*cw,offY+fieldH);X.stroke();}
+  for(let y=0;y<=rows;y++){X.beginPath();X.moveTo(offX,offY+y*ch);X.lineTo(offX+fieldW,offY+y*ch);X.stroke();}
+  // locked blocks
+  X.fillStyle=PAL[0];
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)
+    if(grid[y][x]){X.fillRect(offX+x*cw+1,offY+y*ch+1,cw-2,ch-2);}
+  // active piece
+  X.fillStyle=PAL[1];
+  for(let y=0;y<piece.length;y++)for(let x=0;x<piece[y].length;x++)
+    if(piece[y][x]&&py+y>=0){X.fillRect(offX+(px+x)*cw+1,offY+(py+y)*ch+1,cw-2,ch-2);}
+  // ghost piece
+  let gy=py;while(!collides(piece,px,gy+1))gy++;
+  if(gy!==py){
+    X.strokeStyle=PAL[1];X.lineWidth=1;
+    for(let y=0;y<piece.length;y++)for(let x=0;x<piece[y].length;x++)
+      if(piece[y][x]&&gy+y>=0)X.strokeRect(offX+(px+x)*cw+1,offY+(gy+y)*ch+1,cw-2,ch-2);
+  }
+  // score
+  X.fillStyle=PAL[0];X.font='bold '+Math.round(W/22)+'px monospace';X.textAlign='left';
+  X.fillText(score,offX,offY-6);
+  X.textAlign='right';X.fillText('L'+level,offX+fieldW,offY-6);
+  // game over
+  if(over){
+    X.fillStyle='rgba(155,188,15,0.88)';X.fillRect(offX,offY,fieldW,fieldH);
+    X.fillStyle=PAL[0];X.font='bold '+Math.round(W/10)+'px monospace';X.textAlign='center';
+    X.fillText('GAME',W/2,H/2-W/10);X.fillText('OVER',W/2,H/2+W/16);
+    X.font=Math.round(W/16)+'px monospace';
+    X.fillText(score+' pts',W/2,H/2+W/5);
+    X.font=Math.round(W/20)+'px monospace';
+    X.fillText('Press A',W/2,H/2+W/3.2);
+  }
+}
+function input(btn){
+  if(btn==='a'){
+    if(!started||over){reset();started=true;return;}
+    rotate(piece);return;
+  }
+  if(btn==='b'){hardDrop();return;}
+  if(!started||over)return;
+  if(btn==='left')moveLeft();
+  if(btn==='right')moveRight();
+  if(btn==='down')drop();
+  if(btn==='up')rotate(piece);
+}
+function loop(t){
+  if(started&&!over&&t-lastDrop>dropInterval){lastDrop=t;drop();}
+  draw();requestAnimationFrame(loop);
+}
+resize();reset();requestAnimationFrame(loop);
+window.addEventListener('resize',resize);
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='gb-input')input(e.data.btn);});
+const kmap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right',Enter:'a',' ':'b'};
+document.addEventListener('keydown',e=>{const b=kmap[e.key];if(b){e.preventDefault();input(b);}});
+})();
+</script></body></html>

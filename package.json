@@ -1,0 +1,39 @@
+{
+  "name": "badnotes-desktop",
+  "productName": "BadNotes",
+  "version": "0.1.0-alpha.1",
+  "description": "Local-first handwriting and notebooks. By Mr. Lemon.",
+  "author": { "name": "Mr. Lemon", "url": "https://github.com/Hot-Sweeper" },
+  "license": "MIT",
+  "private": true,
+  "main": "electron/main.cjs",
+  "repository": { "type": "git", "url": "https://github.com/Hot-Sweeper/badnotes-desktop.git" },
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "start": "electron .",
+    "test": "node scripts/test.cjs",
+    "check": "node scripts/check.cjs",
+    "build:backend": "node scripts/build-backend.cjs",
+    "pack": "npm run build:backend && electron-builder --dir --publish never",
+    "dist:linux": "npm run build:backend && electron-builder --linux --publish never",
+    "dist:win": "npm run build:backend && electron-builder --win --publish never",
+    "dist:mac": "npm run build:backend && electron-builder --mac --publish never"
+  },
+  "devDependencies": { "electron": "44.5.1", "electron-builder": "26.15.3" },
+  "build": {
+    "appId": "io.github.hot-sweeper.badnotes",
+    "artifactName": "BadNotes-${version}-${os}-${arch}.${ext}",
+    "directories": { "output": "dist", "buildResources": "assets" },
+    "files": ["electron/**", "assets/badnotes-icon.png", "package.json", "LICENSE", "THIRD_PARTY_NOTICES.md", "!**/__pycache__/**"],
+    "extraResources": [
+      { "from": "build/backend/badnotes-backend", "to": "backend", "filter": ["**/*"] },
+      { "from": "electron", "to": "input", "filter": ["*.py"] }
+    ],
+    "asar": true,
+    "linux": { "target": ["AppImage", "deb"], "category": "Office", "icon": "assets/badnotes-icon.png", "desktop": { "entry": { "StartupWMClass": "BadNotes" } } },
+    "win": { "target": ["nsis"], "icon": "assets/badnotes-icon.png" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "deleteAppDataOnUninstall": false },
+    "mac": { "target": ["dmg", "zip"], "category": "public.app-category.productivity", "icon": "assets/badnotes-icon.png", "identity": null },
+    "publish": null
+  }
+}

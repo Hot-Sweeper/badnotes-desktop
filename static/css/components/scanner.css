@@ -1,0 +1,34 @@
+/* The phone companion shares the editor's palette roles and control language.
+ * These scoped rules override the older embedded scanner stylesheet. */
+html[data-theme] body { background: var(--ui-surround); color: var(--ui-text); font-family: system-ui,-apple-system,sans-serif; }
+html[data-theme] header { background: var(--ui-surface); border-color: var(--ui-divider); padding: 22px 20px 18px; backdrop-filter: none; }
+.scanner-brand { display: flex; align-items: center; justify-content: center; gap: 9px; margin-bottom: 6px; }
+html[data-theme] header h1 { color: var(--ui-text); background: none; -webkit-text-fill-color: currentColor; font-size: 22px; font-weight: 700; letter-spacing: -.6px; margin: 0; }
+.scanner-brand h1 span { color: var(--ui-accent); }
+html[data-theme] :is(header p,.preview-placeholder,.mode-label,.progress-text) { color: var(--ui-muted); }
+html[data-theme] .container { padding: 20px; gap: 16px; max-width: 560px; }
+html[data-theme] .preview-area { min-height: 220px; background: var(--ui-field); border: 1px dashed var(--ui-border); border-radius: 26px; corner-shape: squircle; transition: border-color .16s; }
+html[data-theme] .preview-area.has-image { border: 1px solid var(--ui-border); }
+html[data-theme] .preview-area.processed { border-color: var(--ui-success); }
+html[data-theme] :is(.source-btn,.mode-btn,.batch-clear,.action-btn) { font: inherit; font-size: 13px; font-weight: 500; color: var(--ui-text); border: 0; background: var(--ui-surface); border-radius: 18px; corner-shape: squircle; min-height: 44px; box-shadow: none; transform: none; -webkit-tap-highlight-color: transparent; transition: background-color .16s,color .16s; }
+html[data-theme] :is(.source-btn,.mode-btn):hover { background: var(--ui-hover); }
+html[data-theme] :is(.source-btn,.mode-btn) svg { color: var(--ui-accent); stroke-width: 1.8; }
+html[data-theme] .mode-btn { font-size: 11px; min-width: 76px; }
+html[data-theme] .mode-btn.active { color: var(--ui-accent); background: var(--ui-accent-soft); }
+html[data-theme] .action-btn.send { background: var(--ui-action-solid); color: #fff; padding: 14px 18px; }
+html[data-theme] .action-btn.send:hover { background: var(--brand-fill-hover); }
+html[data-theme] .action-btn:disabled { background: var(--ui-field); color: var(--ui-disabled); }
+html[data-theme] .batch-clear { color: var(--ui-error); background: transparent; font-size: 11px; min-height: 36px; }
+html[data-theme] .batch-info { background: var(--ui-accent-soft); color: var(--ui-accent); border: 0; border-radius: 18px; corner-shape: squircle; }
+html[data-theme] .preview-badge.original { color: var(--ui-accent); background: var(--ui-accent-soft); border-radius: 10px; }
+html[data-theme] .preview-badge.processed { color: var(--ui-success); background: var(--ui-surface); }
+html[data-theme] .progress-bar { background: var(--ui-field); }
+html[data-theme] .progress-fill { background: var(--ui-action-solid); }
+html[data-theme] .spinner { border-color: var(--ui-border); border-top-color: var(--ui-accent); }
+html[data-theme] .loading-overlay { background: color-mix(in srgb,var(--ui-surface) 94%,transparent); }
+html[data-theme] .loading-text { color: var(--ui-secondary); }
+html[data-theme] .status.info { color: var(--ui-accent); background: var(--ui-accent-soft); border-color: transparent; }
+html[data-theme] .status.success { color: var(--ui-success); background: var(--ui-surface); border-color: transparent; }
+html[data-theme] .status.error { color: var(--ui-error); background: var(--ui-surface); border-color: transparent; }
+html[data-theme] button:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+@media(prefers-reduced-motion:reduce) { html[data-theme] * { animation: none; transition: none; } }

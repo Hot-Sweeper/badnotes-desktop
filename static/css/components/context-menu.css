@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Context Menu Component Styles
+   ========================================================================== */
+
+.context-menu {
+    position: fixed;
+    min-width: 180px;
+    background: rgba(40, 40, 40, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    z-index: var(--z-popover);
+    padding: var(--spacing-xs) 0;
+    animation: context-menu-enter 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes context-menu-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.context-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    z-index: 1;
+}
+
+.context-menu-item:hover {
+    background: var(--glass-bg-hover);
+    color: var(--color-text-primary);
+}
+
+.context-menu-item.danger {
+    color: var(--color-error);
+}
+
+.context-menu-item.danger:hover {
+    background: color-mix(in srgb, var(--color-error) 15%, transparent);
+}
+
+.context-menu-item.recycle {
+    color: var(--color-warning);
+}
+
+.context-menu-item.recycle:hover {
+    background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+}
+
+.context-menu-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.context-menu-item.disabled:hover {
+    background: transparent;
+}
+
+.context-menu-item .icon {
+    width: 18px;
+    height: 18px;
+}
+
+.context-menu-item .shortcut {
+    margin-left: auto;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    font-family: var(--font-family-mono);
+}
+
+.context-menu-divider {
+    height: 1px;
+    background-color: var(--color-border);
+    margin: var(--spacing-xs) 0;
+}
+
+/* ===== Submenu ===== */
+.context-menu-item.has-submenu::after {
+    content: '›';
+    margin-left: auto;
+    font-size: var(--font-size-lg);
+}
+
+.context-submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-left: -2px;
+}
+
+/* ===== OLED Theme - Apple-Style Liquid Glass Context Menu ===== */
+[data-theme="oled"] .context-menu {
+    /* Transparent glass menu */
+    background: rgba(10, 10, 10, 0.65);
+
+    /* Heavy blur for glass effect */
+    backdrop-filter: blur(80px) saturate(180%);
+    -webkit-backdrop-filter: blur(80px) saturate(180%);
+
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    position: fixed;
+    overflow: hidden;
+}
+
+/* Chromatic aberration - OLED context menu */
+[data-theme="oled"] .context-menu::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow:
+        inset 1px 0 0 rgba(120, 220, 255, 0.1),
+        inset -1px 0 0 rgba(255, 140, 200, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Dark Theme - Liquid Glass Context Menu ===== */
+[data-theme="dark"] .context-menu {
+    background: rgba(10, 10, 10, 0.65);
+    backdrop-filter: blur(80px) saturate(180%);
+    -webkit-backdrop-filter: blur(80px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    position: fixed;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .context-menu::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow:
+        inset 1px 0 0 rgba(120, 220, 255, 0.1),
+        inset -1px 0 0 rgba(255, 140, 200, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ===== Light Theme - Liquid Glass Context Menu ===== */
+[data-theme="light"] .context-menu {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(80px) saturate(180%);
+    -webkit-backdrop-filter: blur(80px) saturate(180%);
+    border: 0.5px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    position: fixed;
+    overflow: hidden;
+}
+
+[data-theme="light"] .context-menu::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow:
+        inset 1px 0 0 rgba(100, 180, 255, 0.15),
+        inset -1px 0 0 rgba(255, 120, 180, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+:is([data-theme="oled"], [data-theme="dark"]) .context-menu-item {
+    transition: all 0.12s ease;
+}
+
+:is([data-theme="oled"], [data-theme="dark"]) .context-menu-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+:is([data-theme="oled"], [data-theme="dark"]) .context-menu-divider {
+    border-top: 0.5px solid rgba(255, 255, 255, 0.06);
+    margin: 4px 12px;
+}
+
+[data-theme="light"] .context-menu-item:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .context-menu-divider {
+    border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+    margin: 4px 12px;
+}

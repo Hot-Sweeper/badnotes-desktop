@@ -1,0 +1,74 @@
+/* Real frosting only: no simulated lighting, gradients, shine or fake rims.
+ * Paper/ink stay unfiltered. Native blur is bounded and never animated. */
+:root {
+    --material-shelf-opacity: 94%;
+    --material-blur: blur(12px);
+    --material-shelf-blur: blur(8px);
+    --dock-opacity: 76%;
+}
+:root[data-theme="light"] {
+    --material-shelf-opacity: 92%;
+    --dock-opacity: 76%;
+}
+:root[data-theme="oled"] {
+    --material-shelf-opacity: 96%;
+    --dock-opacity: 82%;
+}
+
+/* Retain the palette and original subtle shelf shadows; soften only content
+ * behind the shelves, not their notebooks, page previews or text. */
+html[data-theme] :is(#sidebar,#pageNav) {
+    background-color: color-mix(in srgb,var(--ui-shelf) var(--material-shelf-opacity),transparent) !important;
+    background-image: none !important;
+    backdrop-filter: var(--material-shelf-blur) !important; -webkit-backdrop-filter: var(--material-shelf-blur) !important;
+}
+html[data-theme] :is(#sidebar,#pageNav).collapsed { box-shadow: none; }
+
+/* Enough translucency for real backdrop blur, keeping full-radius silhouettes.
+ * Primary ink gives labels contrast over both white and black content. */
+html[data-theme] :is(.floating-toolbar,.digital-clock,.recycle-bin-btn,.toolbox-btn) {
+    --material-base: var(--ui-surface);
+    background-color: color-mix(in srgb,var(--material-base) var(--dock-opacity),transparent) !important;
+    background-image: none !important;
+    backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+}
+html[data-theme] .floating-toolbar :is(.tool-btn,.toolbar-drag-handle,.toolbar-collapse-btn,.add-color-btn,.size-value,.zoom-value,.brush-size-label) {
+    color: var(--ui-text);
+}
+html[data-theme] .floating-toolbar .tool-btn:is(.active,[aria-expanded="true"]) { color: var(--ui-accent); }
+html[data-theme] .floating-toolbar #brushSizeButton .brush-size-label { color: var(--ui-text); }
+html[data-theme] #brushSizeButton[aria-expanded="true"] .brush-size-label { color: var(--ui-accent); }
+html[data-theme] .digital-clock :is(.top-clock-time,.top-clock-date,.top-clock-status) { color: var(--ui-text); }
+html[data-theme] :is(.recycle-bin-btn,.toolbox-btn) { color: var(--ui-text); }
+html[data-theme] :is(.digital-clock,.toolbox-btn)::before { background: none; }
+html[data-theme] :is(.recycle-bin-btn,.toolbox-btn):hover {
+    --material-base: var(--ui-hover);
+    background-color: color-mix(in srgb,var(--material-base) var(--dock-opacity),transparent) !important;
+    background-image: none !important;
+}
+/* Preserve receptive-bin feedback and its directional impact animation. */
+html[data-theme] #recycleBinBtn:is(.drag-over,.trash-incoming),html[data-theme] #toolboxBtn.active {
+    --material-base: var(--ui-accent-soft);
+    background-color: var(--material-base) !important;
+    background-image: none !important;
+}
+
+/* Text-heavy palettes and dialogs get denser frosting for readable secondary
+ * labels. Blur is local to the open sheet, never the full-screen scrim. */
+html[data-theme] :is(#geometryPanel,#brushSizePanel,#lassoActionMenu,#lassoOptions,.dropdown-menu,.context-menu,.toast,#textfield-settings-panel,.toolbox-drawer,.eraser-modes,.shapes-menu,.pdf-mode-options,.popover,.modal,.modal-content,.trash-dialog) {
+    background-color: color-mix(in srgb,var(--ui-surface) 97%,transparent) !important;
+    background-image: none !important;
+    backdrop-filter: var(--material-blur) !important; -webkit-backdrop-filter: var(--material-blur) !important;
+}
+/* Do not resurrect the old full-screen/nested blur rules or idle handle chrome. */
+html[data-theme] :is(.toolbar,.tool-group,.toolbar-section,.notebook-item,.page-thumbnail,.page-paper,.page-thumb,.panel-toggle-btn,.modal-overlay,.radial-menu-backdrop) {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    html[data-theme] { --material-shelf-opacity: 100%; --dock-opacity: 100%; --material-blur: none; --material-shelf-blur: none; }
+    html[data-theme] :is(.floating-toolbar,.digital-clock,.recycle-bin-btn,.toolbox-btn) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+    html[data-theme] :is(#geometryPanel,#brushSizePanel,#lassoActionMenu,#lassoOptions,.dropdown-menu,.context-menu,.toast,#textfield-settings-panel,.toolbox-drawer,.eraser-modes,.shapes-menu,.pdf-mode-options,.popover,.modal,.modal-content,.trash-dialog) {
+        background-color: var(--ui-surface) !important;
+    }
+}

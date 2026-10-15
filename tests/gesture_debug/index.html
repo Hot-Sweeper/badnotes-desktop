@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Gesture Debug - Undo/Redo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            padding: 15px;
+            background: #16213e;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .touch-area {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        .zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #333;
+            transition: all 0.2s;
+        }
+
+        .zone.left {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+        }
+
+        .zone.right {
+            background: rgba(46, 204, 113, 0.1);
+            border-color: #2ecc71;
+        }
+
+        .zone.active {
+            transform: scale(0.98);
+        }
+
+        .zone.left.active {
+            background: rgba(231, 76, 60, 0.3);
+        }
+
+        .zone.right.active {
+            background: rgba(46, 204, 113, 0.3);
+        }
+
+        .zone.triggered {
+            animation: flash 0.3s ease-out;
+        }
+
+        @keyframes flash {
+            0% { filter: brightness(2); }
+            100% { filter: brightness(1); }
+        }
+
+        .zone-label {
+            font-size: 32px;
+            font-weight: bold;
+            opacity: 0.5;
+        }
+
+        .zone-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+
+        .counter {
+            font-size: 48px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .divider {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #e74c3c, #333, #2ecc71);
+            transform: translateX(-50%);
+        }
+
+        .debug-panel {
+            background: #0d1117;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #30363d;
+        }
+
+        .debug-line {
+            padding: 3px 0;
+            border-bottom: 1px solid #21262d;
+        }
+
+        .debug-line.info { color: #58a6ff; }
+        .debug-line.success { color: #3fb950; }
+        .debug-line.warning { color: #d29922; }
+        .debug-line.error { color: #f85149; }
+
+        .touch-indicator {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 3px solid #fff;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-bar {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 100;
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .status-dot.active { background: #2ecc71; }
+        .status-dot.warning { background: #f39c12; }
+        .status-dot.error { background: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖐️ Gesture Debug - 2-Finger Tap Undo/Redo</h1>
+            <p>Hold finger 1, then TAP finger 2: LEFT = UNDO | RIGHT = REDO (can tap multiple times!)</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot" id="touchCountDot"></div>
+                <span>Touches: <strong id="touchCount">0</strong></span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot" id="tapStateDot"></div>
+                <span>Tap State: <strong id="tapState">idle</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Duration: <strong id="duration">0</strong>ms</span>
+            </div>
+            <div class="status-item">
+                <span>Movement: <strong id="movement">0</strong>px</span>
+            </div>
+        </div>
+
+        <div class="touch-area" id="touchArea">
+            <div class="zone left" id="leftZone">
+                <div class="zone-icon">↩️</div>
+                <div class="zone-label">UNDO</div>
+                <div class="counter" id="undoCount">0</div>
+            </div>
+            <div class="divider"></div>
+            <div class="zone right" id="rightZone">
+                <div class="zone-icon">↪️</div>
+                <div class="zone-label">REDO</div>
+                <div class="counter" id="redoCount">0</div>
+            </div>
+        </div>
+
+        <div class="debug-panel" id="debugPanel">
+            <div class="debug-line info">🚀 Gesture Debug initialized. Touch with 2 fingers to test.</div>
+        </div>
+    </div>
+
+    <script>
+        const touchArea = document.getElementById('touchArea');
+        const leftZone = document.getElementById('leftZone');
+        const rightZone = document.getElementById('rightZone');
+        const debugPanel = document.getElementById('debugPanel');
+
+        let undoCount = 0;
+        let redoCount = 0;
+        let touchIndicators = [];
+
+        let gestureTapState = null;
+        let firstFingerX = null;
+        let firstFingerId = null;
+
+        function log(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `debug-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugPanel.insertBefore(line, debugPanel.firstChild.nextSibling);
+
+            // Keep only last 50 lines
+            while (debugPanel.children.length > 51) {
+                debugPanel.removeChild(debugPanel.lastChild);
+            }
+        }
+
+        function updateStatus() {
+            const touchCountEl = document.getElementById('touchCount');
+            const touchCountDot = document.getElementById('touchCountDot');
+            const tapStateEl = document.getElementById('tapState');
+            const tapStateDot = document.getElementById('tapStateDot');
+            const durationEl = document.getElementById('duration');
+            const movementEl = document.getElementById('movement');
+
+            touchCountEl.textContent = touchIndicators.length;
+            touchCountDot.className = 'status-dot' + (touchIndicators.length === 2 ? ' active' : touchIndicators.length > 0 ? ' warning' : '');
+
+            if (gestureTapState) {
+                tapStateEl.textContent = gestureTapState.invalidated ? 'invalidated' : 'tracking';
+                tapStateDot.className = 'status-dot' + (gestureTapState.invalidated ? ' error' : ' active');
+                durationEl.textContent = Date.now() - gestureTapState.startTime;
+            } else {
+                tapStateEl.textContent = 'idle';
+                tapStateDot.className = 'status-dot';
+                durationEl.textContent = '0';
+            }
+        }
+
+        function getTouchDistance(t1, t2) {
+            const dx = t1.clientX - t2.clientX;
+            const dy = t1.clientY - t2.clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function updateTouchIndicators(touches) {
+            // Remove old indicators
+            touchIndicators.forEach(el => el.remove());
+            touchIndicators = [];
+
+            // Create new indicators
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                const indicator = document.createElement('div');
+                indicator.className = 'touch-indicator';
+                indicator.textContent = i + 1;
+                indicator.style.left = touch.clientX + 'px';
+                indicator.style.top = touch.clientY + 'px';
+                touchArea.appendChild(indicator);
+                touchIndicators.push(indicator);
+            }
+        }
+
+        function highlightZone(zone) {
+            zone.classList.add('active');
+        }
+
+        function unhighlightZones() {
+            leftZone.classList.remove('active');
+            rightZone.classList.remove('active');
+        }
+
+        function triggerZone(zone, action) {
+            zone.classList.add('triggered');
+            setTimeout(() => zone.classList.remove('triggered'), 300);
+
+            if (action === 'undo') {
+                undoCount++;
+                document.getElementById('undoCount').textContent = undoCount;
+                log(`✅ UNDO triggered! (Total: ${undoCount})`, 'success');
+            } else {
+                redoCount++;
+                document.getElementById('redoCount').textContent = redoCount;
+                log(`✅ REDO triggered! (Total: ${redoCount})`, 'success');
+            }
+        }
+
+        // Touch event handlers (mirrors app logic)
+        touchArea.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touches = Array.from(e.touches);
+            updateTouchIndicators(touches);
+
+            log(`TouchStart: ${touches.length} finger(s)`, 'info');
+
+            // Track first finger
+            if (touches.length === 1) {
+                firstFingerX = touches[0].clientX;
+                firstFingerId = touches[0].identifier;
+                log(`First finger at X: ${Math.round(firstFingerX)} (ID: ${firstFingerId})`, 'info');
+            }
+
+            if (touches.length === 2 && firstFingerX !== null) {
+                // Find the NEW finger (not the first one)
+                let secondFingerX;
+                for (let i = 0; i < touches.length; i++) {
+                    if (touches[i].identifier !== firstFingerId) {
+                        secondFingerX = touches[i].clientX;
+                        break;
+                    }
+                }
+                if (secondFingerX === undefined) {
+                    secondFingerX = touches[1].clientX;
+                }
+
+                const direction = secondFingerX > firstFingerX ? 'right' : 'left';
+
+                const x = (touches[0].clientX + touches[1].clientX) / 2;
+                const y = (touches[0].clientY + touches[1].clientY) / 2;
+
+                gestureTapState = {
+                    startX: x,
+                    startY: y,
+                    startTime: Date.now(),
+                    invalidated: false,
+                    startDistance: getTouchDistance(touches[0], touches[1]),
+                    direction: direction
+                };
+
+                log(`2nd finger at X: ${Math.round(secondFingerX)} → ${direction.toUpperCase()} of first (${direction === 'left' ? 'UNDO' : 'REDO'})`, 'success');
+
+                if (direction === 'left') {
+                    highlightZone(leftZone);
+                } else {
+                    highlightZone(rightZone);
+                }
+            }
+
+            updateStatus();
+        }, { passive: false });
+
+        touchArea.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touches = Array.from(e.touches);
+            updateTouchIndicators(touches);
+
+            if (touches.length === 2 && gestureTapState && !gestureTapState.invalidated) {
+                const x = (touches[0].clientX + touches[1].clientX) / 2;
+                const y = (touches[0].clientY + touches[1].clientY) / 2;
+                const currentDistance = getTouchDistance(touches[0], touches[1]);
+
+                const posDist = Math.sqrt(Math.pow(x - gestureTapState.startX, 2) + Math.pow(y - gestureTapState.startY, 2));
+                const pinchDelta = Math.abs(currentDistance - gestureTapState.startDistance);
+
+                document.getElementById('movement').textContent = Math.round(Math.max(posDist, pinchDelta));
+
+                if (posDist > 30 || pinchDelta > 30) {
+                    gestureTapState.invalidated = true;
+                    log(`❌ Tap invalidated: moved ${Math.round(posDist)}px, pinched ${Math.round(pinchDelta)}px`, 'warning');
+                    unhighlightZones();
+                }
+            }
+
+            updateStatus();
+        }, { passive: false });
+
+        touchArea.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const touches = Array.from(e.touches);
+            updateTouchIndicators(touches);
+
+            log(`TouchEnd: ${touches.length} finger(s) remaining`, 'info');
+
+            if (gestureTapState && touches.length < 2) {
+                const duration = Date.now() - gestureTapState.startTime;
+
+                log(`Tap ended. Duration: ${duration}ms, Invalidated: ${gestureTapState.invalidated}`, 'info');
+
+                // INSTANT tap: must release within 150ms to distinguish from zoom
+                if (!gestureTapState.invalidated && duration < 150) {
+                    if (gestureTapState.direction === 'left') {
+                        triggerZone(leftZone, 'undo');
+                    } else {
+                        triggerZone(rightZone, 'redo');
+                    }
+                } else if (gestureTapState.invalidated) {
+                    log(`Tap failed: Movement/pinch detected`, 'error');
+                } else {
+                    log(`Tap failed: Too slow (${duration}ms > 150ms) - this is a zoom gesture`, 'warning');
+                }
+
+                gestureTapState = null;
+                // Keep first finger so user can tap multiple times
+                unhighlightZones();
+            }
+
+            updateStatus();
+            document.getElementById('movement').textContent = '0';
+        }, { passive: false });
+
+        touchArea.addEventListener('touchcancel', (e) => {
+            log('TouchCancel - gesture interrupted by system', 'error');
+            touchIndicators.forEach(el => el.remove());
+            touchIndicators = [];
+            gestureTapState = null;
+            unhighlightZones();
+            updateStatus();
+        });
+
+        // Update duration continuously
+        setInterval(() => {
+            if (gestureTapState && !gestureTapState.invalidated) {
+                document.getElementById('duration').textContent = Date.now() - gestureTapState.startTime;
+            }
+        }, 16);
+
+        log('Ready! Touch the screen with 2 fingers to test undo/redo gestures.', 'success');
+    </script>
+</body>
+</html>

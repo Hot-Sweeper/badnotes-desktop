@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BadNotes</title>
+    <link rel="icon" type="image/png" href="/static/badnotes-icon.png">
+    <link rel="stylesheet" href="/static/css/variables.css">
+    <link rel="stylesheet" href="/static/css/app-styles.css">
+    <link rel="stylesheet" href="/static/css/components/radial-menu.css">
+    <link rel="stylesheet" href="/static/css/components/notebook-refresh.css">
+    <link rel="stylesheet" href="/static/css/components/continuous-corners.css">
+    <link rel="stylesheet" href="/static/css/components/brush-size.css">
+    <link rel="stylesheet" href="/static/css/components/theme-palettes.css">
+    <link rel="stylesheet" href="/static/css/components/appearance-settings.css">
+    <link rel="stylesheet" href="/static/css/components/trash-motion.css">
+    <link rel="stylesheet" href="/static/css/components/scrollbar-fade.css">
+    <link rel="stylesheet" href="/static/css/components/surface-depth.css">
+    <link rel="stylesheet" href="/static/css/components/interaction-polish.css">
+    <link rel="stylesheet" href="/static/css/components/ui-language.css">
+
+</head>
+<body>
+    <script>if (window.badnotesWindow) document.documentElement.classList.add('electron-desktop');</script>
+    <header class="window-titlebar" id="windowTitlebar" aria-label="BadNotes window controls">
+        <div class="window-titlebar-brand">
+            <img src="/static/badnotes-icon.png" alt="" draggable="false">
+            <span class="window-titlebar-name">BadNotes</span>
+        </div>
+        <div class="window-titlebar-context" id="windowTitlebarContext" aria-live="polite"></div>
+    </header>
+    <div class="window-titlebar-controls" aria-label="Window controls">
+        <button class="window-control" type="button" data-window-action="minimize" title="Minimize" aria-label="Minimize window">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect class="window-minimize-mark" x="4" y="9.15" width="12" height="1.7" rx=".85"/></svg>
+        </button>
+        <button class="window-control" type="button" data-window-action="maximize" title="Maximize or restore" aria-label="Maximize or restore window">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="4" width="12" height="12" rx="3.2"/></svg>
+        </button>
+        <button class="window-control window-control-close" type="button" data-window-action="close" title="Close" aria-label="Close window">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5.75 5.75 8.5 8.5m0-8.5-8.5 8.5"/></svg>
+        </button>
+    </div>
+    <div class="window-resize-edge window-resize-n" data-edge="n"></div>
+    <div class="window-resize-edge window-resize-s" data-edge="s"></div>
+    <div class="window-resize-edge window-resize-e" data-edge="e"></div>
+    <div class="window-resize-edge window-resize-w" data-edge="w"></div>
+    <div class="window-resize-corner window-resize-ne" data-edge="ne"></div>
+    <div class="window-resize-corner window-resize-nw" data-edge="nw"></div>
+    <div class="window-resize-corner window-resize-se" data-edge="se"></div>
+    <div class="window-resize-corner window-resize-sw" data-edge="sw"></div>
+    <div class="digital-clock magnetized-ui" id="digitalClock" aria-live="polite" aria-label="Clock and optional calendar" role="button" tabindex="0" aria-expanded="false">
+        <div class="top-clock-time" id="digitalClockTime">00:00:00</div>
+        <div class="top-clock-date" id="digitalClockDate">Loading date...</div>
+        <div class="top-clock-status" id="digitalClockStatus">Loading timetable...</div>
+        <div class="top-clock-details" id="digitalClockDetails">
+            <div class="top-clock-header">
+                <span class="top-clock-day-label" id="clockDaySummary">Calendar</span>
+                <span class="top-clock-pill" id="clockStatePill">Loading</span>
+            </div>
+            <div class="top-clock-feed-status" id="clockFeedStatus">Loading calendar</div>
+            <div class="top-clock-cards" id="clockCards">
+                <!-- JS will render lesson cards here -->
+            </div>
+            <div class="top-clock-progress" aria-hidden="true">
+                <div class="top-clock-progress-bar" id="clockProgressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toggle buttons for collapsed panels -->
+    <button class="panel-toggle-btn" id="toggleSidebarBtn" title="Show Notebooks" aria-controls="sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <polyline points="9 18 15 12 9 6"/>
+        </svg>
+    </button>
+    <button class="panel-toggle-btn" id="togglePageNavBtn" title="Show Pages" aria-controls="pageNav">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <polyline points="15 18 9 12 15 6"/>
+        </svg>
+    </button>
+
+    <div class="app" id="app" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-resize" id="sidebarResize"></div>
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <img src="/static/assets/badnotes-logo-extracted.png" alt="" width="40" height="40" draggable="false">
+                    <h1><span class="brand-bad">Bad</span><span class="brand-notes">Notes</span></h1>
+                </div>
+            </div>
+            <div class="sidebar-actions">
+                <button type="button" id="newNotebookBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    <span>New notebook</span>
+                </button>
+            </div>
+            <div class="notebook-list" id="notebookList">
+                <!-- Notebooks will be inserted here -->
+            </div>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="main">
+            <!-- Floating Toolbar Pill - Content generated by ModularToolbar -->
+            <div class="floating-toolbar liquid-glass" id="floatingToolbar">
+                <div class="toolbar-drag-handle" id="toolbarDragHandle" title="Drag to move toolbar | Double-click to customize">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+                        <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                    </svg>
+                </div>
+
+                <div class="toolbar-content" id="toolbarContent">
+                    <!-- Toolbar items are dynamically generated by ModularToolbar -->
+                    <!-- Fallback content in case JS fails to load: -->
+                    <div class="toolbar-section">
+                        <button class="tool-btn active" id="fingerDrawBtn" title="Toggle Finger Drawing">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+                                <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/>
+                                <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+                                <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                            </svg>
+                        </button>
+                        <div class="toolbar-separator"></div>
+                        <button class="tool-btn active" data-tool="pen" title="Pen (P)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                                <path d="M2 2l7.586 7.586"/>
+                            </svg>
+                        </button>
+                        <button class="tool-btn" data-tool="highlighter" title="Highlighter (H)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l-6 6v3h9l3-3"/>
+                                <path d="M22 12l-4.6 4.6a2 2 0 01-2.8 0l-5.2-5.2a2 2 0 010-2.8L14 4"/>
+                            </svg>
+                        </button>
+                        <div class="eraser-dropdown">
+                            <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 20H7L3 16c-.8-.8-.8-2 0-2.8L13.4 3a2 2 0 012.8 0L21 7.8c.8.8.8 2 0 2.8L12 19"/>
+                                </svg>
+                            </button>
+                            <div class="eraser-modes" id="eraserModes">
+                                <button class="eraser-mode active" data-mode="point" title="Point Eraser">Point</button>
+                                <button class="eraser-mode" data-mode="object" title="Object Eraser">Object</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+                    <div class="toolbar-section">
+                        <button class="tool-btn" id="importFileBtn" title="Import File (I)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="12" y1="18" x2="12" y2="12"/>
+                                <line x1="9" y1="15" x2="15" y2="15"/>
+                            </svg>
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+                        <button class="tool-btn" id="handwrittenTextBtn" title="Handwritten Text (T)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="toolbar-section">
+                        <div class="shapes-dropdown">
+                            <button class="tool-btn" id="shapeDropdownBtn" data-tool="line" title="Shapes">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                    <line x1="4" y1="20" x2="20" y2="4"/>
+                                </svg>
+                            </button>
+                            <div class="shapes-menu" id="shapesMenu">
+                                <button class="tool-btn active" data-shape="line" title="Line (L)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                        <line x1="4" y1="20" x2="20" y2="4"/>
+                                    </svg>
+                                </button>
+                                <button class="tool-btn" data-shape="rectangle" title="Rectangle (R)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="4" y="4" width="16" height="16" rx="2"/>
+                                    </svg>
+                                </button>
+                                <button class="tool-btn" data-shape="circle" title="Circle (C)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="8"/>
+                                    </svg>
+                                </button>
+                                <button class="tool-btn" data-shape="arrow" title="Arrow (A)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="4" y1="12" x2="20" y2="12"/>
+                                        <polyline points="14,6 20,12 14,18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="toolbar-separator"></div>
+
+                    <div class="toolbar-section color-section">
+                        <button class="tool-btn" id="pipetteBtn" title="Pipette / Eyedropper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 11.5l-7-7a2 2 0 0 0-2.8 0L4.5 9.2a2 2 0 0 0 0 2.8l7 7L19 11.5z"/>
+                                <path d="M13.5 5.5l3 3"/>
+                                <path d="M2 22l5-5"/>
+                            </svg>
+                        </button>
+                        <!-- Primary/Secondary Color Swatches (Photoshop style) -->
+                        <div class="color-swap-container" id="colorSwapContainer" title="Click to swap colors (X)">
+                            <div class="primary-color-swatch" id="primaryColorSwatch">
+                                <input type="color" id="colorPicker" class="color-input-hidden" value="#ffffff">
+                            </div>
+                            <div class="secondary-color-swatch" id="secondaryColorSwatch" title="Secondary color (Barrel button)">
+                                <input type="color" id="secondaryColorPicker" class="color-input-hidden" value="#ff4444">
+                            </div>
+                            <button class="color-swap-btn" id="colorSwapBtn" title="Swap colors (X)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                                    <path d="M7 16l-4-4 4-4"/>
+                                    <path d="M17 8l4 4-4 4"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="color-presets" id="colorPresets">
+                            <!-- Presets generated by JS -->
+                        </div>
+                        <div class="color-overflow-indicator" id="colorOverflowIndicator" title="More colors available">...</div>
+                        <button class="add-color-btn" id="addColorBtn" title="Add current color to palette">+</button>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <div class="toolbar-section size-section">
+                        <input type="range" class="size-slider" id="sizeSlider" min="0.5" max="10" step="0.1" value="1.5">
+                        <span class="size-value" id="sizeValue">1.5px</span>
+                        <label class="dynamic-brush-toggle" title="Dynamic brush size based on pressure">
+                            <input type="checkbox" id="dynamicBrushToggle">
+                            <div class="dynamic-brush-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2v4"/>
+                                    <path d="M12 18v4"/>
+                                    <path d="M4.93 4.93l2.83 2.83"/>
+                                    <path d="M16.24 16.24l2.83 2.83"/>
+                                    <path d="M2 12h4"/>
+                                    <path d="M18 12h4"/>
+                                    <path d="M4.93 19.07l2.83-2.83"/>
+                                    <path d="M16.24 7.76l2.83-2.83"/>
+                                </svg>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="toolbar-separator"></div>
+
+                    <div class="toolbar-section">
+                        <button class="tool-btn" id="themeToggleBtn" title="Toggle Light/Dark Mode">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                        </button>
+                        <button class="tool-btn" id="undoBtn" title="Undo (Ctrl+Z)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 10h10a5 5 0 0 1 5 5v2"/>
+                                <path d="M3 10l5-5"/>
+                                <path d="M3 10l5 5"/>
+                            </svg>
+                        </button>
+                        <button class="tool-btn" id="redoBtn" title="Redo (Ctrl+Y)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10H11a5 5 0 0 0-5 5v2"/>
+                                <path d="M21 10l-5-5"/>
+                                <path d="M21 10l-5 5"/>
+                            </svg>
+                        </button>
+                        <span class="zoom-value" id="zoomValue" title="Click to reset zoom">100%</span>
+                        <button class="tool-btn" id="fontTrainerBtn" title="Handwritten Font Trainer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"/>
+                                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                                <path d="M4 7V4h3"/>
+                            </svg>
+                        </button>
+                        <button class="tool-btn" id="fontbookAddPageBtn" title="Add Font Variant Page">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 5v14"/>
+                                <path d="M5 12h14"/>
+                                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            </svg>
+                        </button>
+                        <button class="tool-btn" id="settingsBtn" title="Settings">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                            </svg>
+                        </button>
+                        <button class="tool-btn" id="fullscreenBtn" title="Fullscreen (F11)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+                                <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+                                <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+                                <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="toolbar-collapse-btn" id="toolbarCollapseBtn" title="Collapse toolbar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="canvas-area">
+                <div class="canvas-container" id="canvasContainer">
+                    <div class="canvas-wrapper" id="canvasWrapper">
+                        <canvas id="drawingCanvas" width="800" height="1100"></canvas>
+                        <canvas id="activeCanvas" width="800" height="1100"></canvas>
+
+                        <button class="expand-btn expand-top" id="expandTop" title="Expand Top">+</button>
+                        <button class="expand-btn expand-bottom" id="expandBottom" title="Expand Bottom">+</button>
+                        <button class="expand-btn expand-left" id="expandLeft" title="Expand Left">+</button>
+                        <button class="expand-btn expand-right" id="expandRight" title="Expand Right">+</button>
+                    </div>
+                </div>
+
+                <!-- Page Navigator -->
+                <div class="page-nav" id="pageNav">
+                    <div class="page-nav-resize" id="pageNavResize"></div>
+                    <div class="page-nav-header">
+                        <div class="page-nav-heading"><div class="page-nav-label"><span class="page-nav-title">Pages</span>
+                            <span class="page-nav-indicator" id="pageIndicator">1 / 1</span></div>
+                        </div>
+                            <button class="add-page-btn" id="addPageBtn" title="Add a page" aria-label="Add a new page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New page</span></button>
+                    </div>
+                    <div class="page-list" id="pageList">
+                        <!-- Page thumbnails will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Recycle Bin Modal -->
+    <!-- Recycle Bin Floating Button -->
+    <div class="recycle-bin-btn magnetized-ui" id="recycleBinBtn" title="Recycle Bin">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <g class="trash-lid"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></g>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+    </div>
+
+    <!-- Toolbox Floating Button -->
+    <div class="toolbox-btn magnetized-ui" id="toolboxBtn" title="Toolbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M9 10v4M15 10v4"/></svg>
+    </div>
+
+    <!-- New Notebook Modal -->
+    <div class="modal-overlay" id="newNotebookModal">
+        <div class="modal notebook-create-dialog" role="dialog" aria-modal="true" aria-labelledby="newNotebookHeading">
+            <div class="modal-header">
+                <h2 class="modal-title" id="newNotebookHeading">A new notebook</h2>
+                <p class="notebook-dialog-subtitle">Your ideas, with a cover of their own.</p>
+                <button class="icon-btn" onclick="hideModal('newNotebookModal')" style="position: absolute; right: 24px; top: 24px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="newNotebookTitle">Notebook name</label>
+                    <input type="text" id="newNotebookTitle" placeholder="My Notebook" value="Untitled Notebook">
+                </div>
+
+                <div class="input-group"><label>Cover color</label><div id="colorGrid" class="notebook-cover-colors" role="group" aria-label="Cover color"></div></div>
+                <div class="input-group"><label>Cover emblem</label><div id="notebookIconGrid" role="group" aria-label="Cover emblem"></div></div>
+                <div class="notebook-create-preview" aria-hidden="true"><div class="notebook-cover notebook-preview-cover" id="newNotebookCover"><span class="cover-label">NOTEBOOK</span><span class="cover-lines"></span></div><div><strong id="newNotebookPreviewTitle">Untitled Notebook</strong><span id="newNotebookPreviewPaper">Blank paper · Ready for your first page</span></div></div>
+                <div class="input-group">
+                    <label>Page Template</label>
+                    <div class="template-grid">
+                        <div class="template-option selected" data-template="blank">
+                            <div class="template-preview blank"></div>
+                            <span>Blank</span>
+                        </div>
+                        <div class="template-option" data-template="lined">
+                            <div class="template-preview lined"></div>
+                            <span>Lined</span>
+                        </div>
+                        <div class="template-option" data-template="grid">
+                            <div class="template-preview grid"></div>
+                            <span>Grid</span>
+                        </div>
+                        <div class="template-option" data-template="dotted">
+                            <div class="template-preview dotted"></div>
+                            <span>Dotted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('newNotebookModal')">Cancel</button>
+                <button class="btn notebook-delete-action" id="deleteNotebookMetadataBtn" type="button" hidden>Delete notebook</button>
+                <button class="btn btn-primary" id="createNotebookBtn">Create notebook</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="recycleBinModal">
+        <div class="modal trash-dialog" role="dialog" aria-modal="true" aria-labelledby="trashHeading">
+            <div class="modal-header">
+                <div><p class="trash-eyebrow">A place to let go</p><h2 class="modal-title" id="trashHeading">Recycle Bin</h2><p id="trashSummary">Restore whenever you need them</p></div>
+                <button class="icon-btn" id="closeRecycleBin" type="button" aria-label="Close Recycle Bin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </div>
+            <div class="modal-body">
+                <nav class="recycle-tabs" role="tablist" aria-label="Trash categories">
+                    <button class="recycle-tab active" role="tab" data-tab="all">All <span>0</span></button>
+                    <button class="recycle-tab" role="tab" data-tab="notebook">Notebooks <span>0</span></button>
+                    <button class="recycle-tab" role="tab" data-tab="page">Pages <span>0</span></button>
+                    <button class="recycle-tab" role="tab" data-tab="content">Selections <span>0</span></button>
+                    <button class="recycle-tab" role="tab" data-tab="color">Colors <span>0</span></button>
+                </nav>
+                <input id="trashSearch" type="search" placeholder="Find something you let go…" aria-label="Search Recycle Bin">
+                <div class="recycle-list" id="recycleList">
+                    <!-- Deleted items will be listed here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="emptyRecycleBin">Empty Bin</button>
+                <p>Nothing disappears until you empty it.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal" id="settingsModalContent" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
+            <div class="modal-header">
+                <div><h2 class="modal-title" id="settingsHeading">Settings</h2><p class="settings-subtitle">Make BadNotes feel like yours.</p></div>
+                <button class="icon-btn" id="closeSettingsBtn" type="button" title="Close settings" aria-label="Close settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </div>
+            <nav class="settings-nav" role="tablist" aria-label="Settings categories">
+                <button type="button" role="tab" data-settings-tab="appearance">Appearance</button>
+                <button type="button" role="tab" data-settings-tab="drawing">Drawing</button>
+                <button type="button" role="tab" data-settings-tab="buttons">Pen buttons</button>
+                <button type="button" role="tab" data-settings-tab="toolbar">Toolbar</button>
+            </nav>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Smoothing & Input</h3>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Stroke Smoothness</label>
+                        <div class="settings-control">
+                            <input type="range" class="settings-slider" id="smoothnessSlider" min="0" max="200" value="60">
+                            <span class="settings-value" id="smoothnessValue">60</span>
+                        </div>
+                        <p class="settings-hint">0 = raw input, 100 = smooth, 200 = ultra-smooth (silky)</p>
+                    </div>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Minimum Point Distance</label>
+                        <div class="settings-control">
+                            <input type="range" class="settings-slider" id="minDistanceSlider" min="0.5" max="5" step="0.5" value="1.5">
+                            <span class="settings-value" id="minDistanceValue">1.5px</span>
+                        </div>
+                        <p class="settings-hint">Lower values capture more detail but may be noisier</p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Page Background</h3>
+                    <div class="template-grid" id="settingsTemplateGrid">
+                        <div class="template-option" data-template="blank">
+                            <div class="template-preview"></div>
+                            <span class="template-name">Blank</span>
+                        </div>
+                        <div class="template-option" data-template="lined">
+                            <div class="template-preview lined"></div>
+                            <span class="template-name">Lined</span>
+                        </div>
+                        <div class="template-option" data-template="grid">
+                            <div class="template-preview grid"></div>
+                            <span class="template-name">Grid</span>
+                        </div>
+                        <div class="template-option" data-template="dotted">
+                            <div class="template-preview dotted"></div>
+                            <span class="template-name">Dotted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Interface</h3>
+
+                    <div class="appearance-settings">
+                        <input type="hidden" id="settingsTheme" value="dark">
+                        <div class="appearance-label"><span id="themeChoicesLabel">Theme</span><small>Changes apply instantly</small></div>
+                        <div id="themeChoices" class="theme-choices" role="radiogroup" aria-labelledby="themeChoicesLabel"></div>
+                        <div class="appearance-label accent-label"><span id="accentChoicesLabel">Interface tone</span><small id="appearanceAccentName">Iris</small></div>
+                        <div id="accentChoices" class="accent-choices" role="radiogroup" aria-labelledby="accentChoicesLabel" aria-describedby="accentChoicesHint"></div>
+                        <p class="appearance-hint" id="accentChoicesHint">Coordinates the workspace, shelves and controls with neutral paper. Your ink and notebook covers stay unchanged.</p>
+                    </div>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Rotate Crosshair 45°</label>
+                        <div class="settings-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="settingsCrosshairRotated">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="settings-hint">Rotate the drawing cursor 45 degrees (× style)</p>
+                    </div>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Finger Drawing</label>
+                        <div class="settings-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="settingsFingerDraw">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="settings-hint">Allow drawing with finger (disable for palm rejection)</p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Pressure Thickness</h3>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Dynamic Brush (Pressure Thickness)</label>
+                        <div class="settings-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="settingsDynamicBrush">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="settings-hint">Vary line thickness based on pen pressure</p>
+                    </div>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Pressure Multiplier</label>
+                        <div class="settings-control">
+                            <input type="range" class="settings-slider" id="settingsPressureMultiplier" min="0.1" max="3.0" step="0.1" value="1.0">
+                            <span class="settings-value" id="pressureMultiplierValue">1.0x</span>
+                        </div>
+                        <p class="settings-hint">How much pressure affects thickness (0.1x-3.0x)</p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">HP Pen Buttons</h3>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Upper button · farther from tip</label>
+                        <div class="settings-control">
+                            <select id="settingsEraserMode" class="settings-select" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                                <option value="eraser">🧹 Eraser</option>
+                                <option value="color">🎨 Secondary Color</option>
+                                <option value="lasso">⭕ Lasso Select</option>
+                                <option value="radial">☀️ Radial Menu</option>
+                                <option value="undo">↩️ Undo</option>
+                                <option value="redo">↪️ Redo</option>
+                                <option value="highlighter">🖍️ Highlighter</option>
+                                <option value="size">📏 Brush Size</option>
+                                <option value="none">➖ None</option>
+                            </select>
+                        </div>
+                        <p class="settings-hint">Top button on the pen</p>
+                    </div>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Lower button · closer to tip</label>
+                        <div class="settings-control">
+                            <select id="settingsBarrelMode" class="settings-select" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                                <option value="eraser">🧹 Eraser</option>
+                                <option value="color">🎨 Secondary Color</option>
+                                <option value="lasso">⭕ Lasso Select</option>
+                                <option value="radial">☀️ Radial Menu</option>
+                                <option value="undo">↩️ Undo</option>
+                                <option value="redo">↪️ Redo</option>
+                                <option value="highlighter">🖍️ Highlighter</option>
+                                <option value="size">📏 Brush Size</option>
+                                <option value="none">➖ None</option>
+                            </select>
+                        </div>
+                        <p class="settings-hint">Side button on the pen barrel</p>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="barrelMenuSection" style="display: none;">
+                    <h3 class="settings-section-title">Barrel Menu Customization</h3>
+
+                    <div class="barrel-menu-count-control">
+                        <label>Number of Slices</label>
+                        <div class="barrel-menu-count-buttons">
+                            <button class="barrel-menu-count-btn" id="barrelMenuCountMinus">−</button>
+                            <span class="barrel-menu-count-value" id="barrelMenuCountValue">6</span>
+                            <button class="barrel-menu-count-btn" id="barrelMenuCountPlus">+</button>
+                        </div>
+                    </div>
+
+                    <div class="barrel-menu-slice-list" id="barrelMenuSliceList">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <button class="barrel-menu-preview-btn" id="barrelMenuPreviewBtn">
+                        Preview Radial Menu
+                    </button>
+                    <p class="settings-hint">Hold the configured pen button, move toward an option, then release to choose it. The notebook stays sharp underneath.</p>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Toolbar Customization</h3>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Rearrange Toolbar</label>
+                        <div class="settings-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="settingsToolbarEditMode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p class="settings-hint">Enable to drag and reorder toolbar sections</p>
+                    </div>
+
+                    <div class="settings-item">
+                        <label class="settings-label">Show/Hide Sections</label>
+                        <div class="toolbar-sections-list" id="toolbarSectionsList">
+                            <!-- Dynamically populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="settings-item">
+                        <button class="btn btn-secondary" id="resetToolbarBtn" style="margin-top: 8px;">
+                            Reset Toolbar to Default
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="resetSettingsBtn">Reset to Defaults</button>
+                <span class="settings-live-status" role="status">Changes save automatically</span>
+                <button class="btn btn-primary" id="saveSettingsBtn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/modules/01_core.js"></script>
+    <script src="/static/js/modules/02_utils.js"></script>
+    <script src="/static/js/ui/DialogFocus.js"></script>
+    <script src="/static/js/tools/GeometryEngine.js"></script>
+    <script src="/static/js/tools/VectorRegionFinder.js"></script>
+    <script src="/static/js/tools/MathSolver.js"></script>
+    <script src="/static/js/modules/03_canvas_core.js"></script>
+    <script src="/static/js/modules/04_ui_panels.js"></script>
+    <script src="/static/js/modules/05_data_notebooks.js"></script>
+    <script src="/static/js/modules/06_ui_components.js"></script>
+    <script src="/static/assets/lib/earcut.min.js"></script>
+    <script src="/static/js/modules/07_canvas_fill.js"></script>
+    <script src="/static/js/modules/08_ui_toolbar.js"></script>
+    <script src="/static/js/modules/09_events.js"></script>
+
+    <script src="/static/js/modules/11_ui_collapsible.js"></script>
+    <script src="/static/js/modules/13_hp_pen.js"></script>
+    <script src="/static/js/modules/14_image_manipulation.js"></script>
+    <script src="/static/js/modules/15_lasso_selection.js"></script>
+    <script src="/static/js/modules/16_radial_menu.js"></script>
+    <script src="/static/js/modules/17_context_menu.js"></script>
+
+    <script src="/static/js/modules/20_font_core.js"></script>
+    <script src="/static/js/modules/23_fontbook.js"></script>
+    <script src="/static/js/modules/24_font_renderer.js"></script>
+    <script src="/static/js/modules/25_handwritten_text_tool.js"></script>
+    <script src="/static/js/modules/26_handwritten_text_field.js"></script>
+    <script src="/static/js/modules/29_simple_text_field.js"></script>
+    <script src="/static/js/modules/30_simple_text_tool.js"></script>
+    <script src="/static/js/modules/31_ai_helper.js"></script>
+    <!-- Gravity Scene (modular) -->
+    <script src="/static/js/modules/gravity_scene/gs_constants.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_helpers.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_effects.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_colonies.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_rockets.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_trade.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_diplomacy.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_cosmic.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_star_hazards.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_mega_structures.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_destruction.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_info_panel.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_zoom_view.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_orbits.js"></script>
+    <script src="/static/js/modules/gravity_scene/gs_main.js"></script>
+    <script src="/static/js/modules/32_toolbox.js"></script>
+    <script src="/static/js/modules/33_digital_clock.js"></script>
+    <script src="/static/js/modules/34_liquid_magnet_effects.js"></script>
+    <script src="/static/js/modules/27_modular_toolbar.js"></script>
+    <script src="/static/js/tools/GeometryWorkbench.js"></script>
+    <script src="/static/js/tools/BrushSizeWorkbench.js"></script>
+    <script src="/static/js/ui/ShelfActions.js"></script>
+    <script src="/static/js/ui/Scrollbars.js"></script>
+    <script src="/static/js/ui/MotionPhysics.js"></script>
+    <script src="/static/js/ui/ElasticScroll.js"></script>
+    <script src="/static/js/ui/ViewLimits.js"></script>
+    <script src="/static/js/tools/PaletteWorkbench.js"></script>
+    <script src="/static/js/tools/PaintFill.js"></script>
+    <script src="/static/js/tools/HistoryMotion.js"></script>
+    <script src="/static/js/ui/AppearanceSettings.js"></script>
+    <script src="/static/js/tools/DragMotion.js"></script>
+    <script src="/static/js/tools/LassoWorkbench.js"></script>
+    <script src="/static/js/tools/PageThumbnails.js"></script>
+    <script src="/static/js/tools/TrashWorkbench.js"></script>
+    <script src="/static/js/modules/12_init.js"></script>
+    <script>
+        (() => {
+            const bridge = window.badnotesWindow;
+            if (!bridge) return;
+
+            const titlebar = document.getElementById('windowTitlebar');
+            const controls = document.querySelector('.window-titlebar-controls');
+            const setMaximized = (maximized) => {
+                document.documentElement.classList.toggle('window-maximized', !!maximized);
+                const button = controls.querySelector('[data-window-action="maximize"]');
+                button.title = maximized ? 'Restore window' : 'Maximize window';
+                button.setAttribute('aria-label', button.title);
+                button.innerHTML = maximized
+                    ? '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 6.5V5.3a2.8 2.8 0 0 1 2.8-2.8h5.4a2.8 2.8 0 0 1 2.8 2.8v5.4a2.8 2.8 0 0 1-2.8 2.8h-1.2"/><rect x="2.5" y="6.5" width="11" height="11" rx="2.8"/></svg>'
+                    : '<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="4" width="12" height="12" rx="3.2"/></svg>';
+            };
+
+            controls.addEventListener('click', (event) => {
+                const action = event.target.closest('[data-window-action]')?.dataset.windowAction;
+                if (action === 'minimize') bridge.minimize();
+                if (action === 'maximize') bridge.toggleMaximize();
+                if (action === 'close') bridge.close();
+            });
+            titlebar.addEventListener('dblclick', (event) => {
+                if (!event.target.closest('.window-titlebar-controls')) bridge.toggleMaximize();
+            });
+            bridge.onState((state) => setMaximized(state.maximized || state.fullscreen));
+
+            // Controls are part of the shelf header now, not a hover-only overlay.
+            document.documentElement.classList.add('window-controls-visible');
+
+            let resizing = false;
+            document.querySelectorAll('[data-edge]').forEach((handle) => {
+                handle.addEventListener('pointerdown', (event) => {
+                    if (event.button !== 0 || document.documentElement.classList.contains('window-maximized')) return;
+                    event.preventDefault();
+                    resizing = true;
+                    handle.setPointerCapture(event.pointerId);
+                    bridge.startResize(handle.dataset.edge, event.screenX, event.screenY);
+                });
+                handle.addEventListener('pointermove', (event) => {
+                    if (resizing && event.buttons) bridge.resizeTo(event.screenX, event.screenY);
+                });
+                const stopResize = () => {
+                    if (!resizing) return;
+                    resizing = false;
+                    bridge.endResize();
+                };
+                handle.addEventListener('pointerup', stopResize);
+                handle.addEventListener('pointercancel', stopResize);
+            });
+        })();
+    </script>
+</body>
+</html>

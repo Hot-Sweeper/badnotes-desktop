@@ -1,0 +1,22 @@
+/* Animate the color, not the scrollbar's width or scrollable layout. Native
+ * thumb dragging, wheel/touch scrolling and keyboard navigation stay intact. */
+@property --scrollbar-visibility {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+}
+html[data-theme] * {
+    --scrollbar-thumb-color: color-mix(in srgb,var(--app-scroll-thumb) calc(var(--scrollbar-visibility) * 100%),transparent);
+    scrollbar-color: var(--scrollbar-thumb-color) transparent;
+}
+html[data-theme] *::-webkit-scrollbar-thumb,
+html[data-theme] *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-color);
+    background-clip: padding-box;
+}
+html[data-theme] .scrollbar-auto.scrollbar-gutter-hover {
+    --scrollbar-thumb-color: color-mix(in srgb,var(--app-scroll-hover) calc(var(--scrollbar-visibility) * 100%),transparent);
+}
+@media(prefers-reduced-motion:reduce) {
+    html[data-theme] .scrollbar-auto {transition-duration:0s !important;}
+}

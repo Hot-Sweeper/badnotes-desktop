@@ -1,0 +1,8 @@
+Flask>=3.1,<4
+opencv-python-headless>=4.10,<5
+numpy>=2,<3
+Pillow>=11,<13
+python-dotenv>=1,<2
+requests>=2.32,<3
+tzdata>=2026.1
+waitress>=3.0.2,<4

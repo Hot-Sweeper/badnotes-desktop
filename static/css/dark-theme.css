@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Dark Theme Styles
+   ========================================================================== */
+
+.dark-theme {
+    color-scheme: dark;
+}
+
+/* Override any light mode specific styles */
+.dark-theme .drawing-canvas {
+    /* Canvas background handled by template/paper style */
+}
+
+/* Dark mode specific adjustments */
+.dark-theme .modal-content {
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.dark-theme .context-menu {
+    background-color: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+}
+
+/* Ensure proper contrast in dark mode */
+.dark-theme ::selection {
+    background-color: var(--color-accent-primary);
+    color: var(--color-text-primary);
+}
+
+/* Dark scrollbar */
+.dark-theme ::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+    background: var(--color-bg-active);
+}
+
+/* Focus rings in dark mode */
+.dark-theme :focus-visible {
+    outline-color: var(--color-accent-primary);
+}

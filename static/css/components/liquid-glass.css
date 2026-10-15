@@ -1,0 +1,249 @@
+/* ==========================================================================
+   Liquid Glass Effects - Apple-Style Glassmorphism
+   Uses FxFilter.js for SVG-based distortion and chromatic aberration
+   ========================================================================== */
+
+/* ===== Base Liquid Glass Classes ===== */
+
+/* Standard liquid glass panel */
+.liquid-glass {
+    --fx-filter: blur(2px) liquid-glass(1.5, 8, 0.3) saturate(1.2);
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--glass-border);
+    box-shadow: var(--glass-shadow-md);
+}
+
+/* Elevated liquid glass (modals, dropdowns) */
+.liquid-glass-elevated {
+    --fx-filter: blur(3px) liquid-glass(2, 10, 0.4) saturate(1.25) contrast(1.1);
+    position: relative;
+    background: var(--glass-bg-elevated);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--glass-border-highlight);
+    box-shadow: var(--glass-shadow-lg);
+}
+
+/* Subtle liquid glass (toolbar, buttons) */
+.liquid-glass-subtle {
+    --fx-filter: blur(1px) liquid-glass(1, 6, 0.2) saturate(1.15);
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur-subtle);
+    -webkit-backdrop-filter: var(--glass-blur-subtle);
+    border: 0.5px solid var(--glass-border-inner);
+    box-shadow: var(--glass-shadow-sm);
+}
+
+/* Interactive liquid glass (buttons that respond) */
+.liquid-glass-interactive {
+    --fx-filter: blur(1px) liquid-glass(1, 5, 0.15);
+    transition:
+        --fx-filter 0.3s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+}
+
+.liquid-glass-interactive:hover {
+    --fx-filter: blur(2px) liquid-glass(1.5, 8, 0.25) saturate(1.2);
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow-md);
+}
+
+.liquid-glass-interactive:active {
+    --fx-filter: blur(1.5px) liquid-glass(1.2, 6, 0.2);
+    transform: scale(0.98);
+}
+
+/* ===== Inner Highlight Layer ===== */
+.liquid-glass::before,
+.liquid-glass-elevated::before,
+.liquid-glass-subtle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--glass-highlight-top);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.8;
+}
+
+/* ===== Chromatic Edge Layer ===== */
+.liquid-glass::after,
+.liquid-glass-elevated::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    box-shadow:
+        inset 1px 0 0 var(--chroma-cyan),
+        inset -1px 0 0 var(--chroma-red),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 var(--chroma-purple);
+}
+
+/* ===== Theme-Specific Adjustments ===== */
+
+/* Dark themes - more prominent effects */
+:is([data-theme="dark"], [data-theme="oled"]) .liquid-glass,
+:is([data-theme="dark"], [data-theme="oled"]) .liquid-glass-elevated,
+:is([data-theme="dark"], [data-theme="oled"]) .liquid-glass-subtle {
+    --fx-filter-opacity: 1;
+}
+
+:is([data-theme="dark"], [data-theme="oled"]) .liquid-glass::after,
+:is([data-theme="dark"], [data-theme="oled"]) .liquid-glass-elevated::after {
+    box-shadow:
+        inset 1px 0 0 rgba(120, 220, 255, 0.08),
+        inset -1px 0 0 rgba(255, 140, 200, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 color-mix(in srgb, var(--brand-lilac) calc(0.06 * 100%), transparent);
+}
+
+/* Light theme - softer effects */
+[data-theme="light"] .liquid-glass,
+[data-theme="light"] .liquid-glass-elevated,
+[data-theme="light"] .liquid-glass-subtle {
+    --fx-filter-opacity: 0.7;
+}
+
+[data-theme="light"] .liquid-glass::before,
+[data-theme="light"] .liquid-glass-elevated::before {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.4) 3%,
+        transparent 15%
+    );
+}
+
+[data-theme="light"] .liquid-glass::after,
+[data-theme="light"] .liquid-glass-elevated::after {
+    box-shadow:
+        inset 1px 0 0 rgba(100, 180, 255, 0.1),
+        inset -1px 0 0 rgba(255, 120, 180, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -1px 0 color-mix(in srgb, var(--brand-lilac) calc(0.08 * 100%), transparent);
+}
+
+/* ===== Specialized Components ===== */
+
+/* Floating Toolbar Pill */
+.floating-toolbar.liquid-glass {
+    --fx-filter: blur(2px) liquid-glass(1.8, 10, 0.35) saturate(1.3) contrast(1.05);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+/* Sidebar Panel */
+.sidebar.liquid-glass {
+    --fx-filter: blur(3px) liquid-glass(1.5, 8, 0.25) saturate(1.2);
+    border-radius: 0;
+}
+
+/* Recycling Bin Button */
+.recycling-bin-icon.liquid-glass {
+    --fx-filter: blur(2px) liquid-glass(2, 12, 0.4) saturate(1.4);
+    border-radius: 50%;
+}
+
+/* Modal Panel */
+.modal-panel.liquid-glass,
+.recycling-bin-panel.liquid-glass {
+    --fx-filter: blur(4px) liquid-glass(2, 12, 0.5) saturate(1.3) contrast(1.1);
+    border-radius: 16px;
+}
+
+/* Page Navigator */
+.page-navigator.liquid-glass {
+    --fx-filter: blur(2px) liquid-glass(1.5, 8, 0.3) saturate(1.25);
+    border-radius: 16px;
+}
+
+/* Toast Notifications */
+.toast.liquid-glass {
+    --fx-filter: blur(2px) liquid-glass(1.5, 8, 0.3) saturate(1.2);
+    border-radius: 12px;
+}
+
+/* Context Menu */
+.context-menu.liquid-glass {
+    --fx-filter: blur(3px) liquid-glass(2, 10, 0.4) saturate(1.25);
+    border-radius: 12px;
+}
+
+/* ===== Noise Texture Overlay ===== */
+.liquid-glass-noise {
+    --fx-filter: blur(2px) liquid-glass(1.5, 8, 0.3) noise(0, 0.8, 0.05) saturate(1.2);
+}
+
+/* ===== Animations ===== */
+
+/* Shimmer effect on hover */
+@keyframes glass-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.liquid-glass-shimmer:hover::before {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 25%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 75%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: glass-shimmer 1.5s ease infinite;
+}
+
+/* ===== Utility Classes ===== */
+
+/* Remove effects for performance */
+.no-fx-filter {
+    --fx-filter: none !important;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    .liquid-glass,
+    .liquid-glass-elevated,
+    .liquid-glass-subtle,
+    .liquid-glass-interactive {
+        --fx-filter: none;
+        transition: none;
+    }
+
+    .liquid-glass-shimmer:hover::before {
+        animation: none;
+    }
+}
+
+/* ===== Focus States ===== */
+.liquid-glass-interactive:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+}
+
+/* ===== Disabled State ===== */
+.liquid-glass-interactive:disabled,
+.liquid-glass-interactive.disabled {
+    --fx-filter: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}

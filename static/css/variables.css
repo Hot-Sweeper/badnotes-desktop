@@ -1,0 +1,509 @@
+/* ==========================================================================
+   CSS Variables - Design System
+   Modular color and sizing system for consistent theming
+   Active palette roles and legacy token bridges: components/theme-palettes.css
+   ========================================================================== */
+
+:root {
+    /* ===== Typography (Theme Independent) ===== */
+    --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    --font-family-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-lg: 1.125rem;   /* 18px */
+    --font-size-xl: 1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 2rem;      /* 32px */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* ===== Spacing (Theme Independent) ===== */
+    --spacing-xs: 0.25rem;      /* 4px */
+    --spacing-sm: 0.5rem;       /* 8px */
+    --spacing-md: 1rem;         /* 16px */
+    --spacing-lg: 1.5rem;       /* 24px */
+    --spacing-xl: 2rem;         /* 32px */
+    --spacing-2xl: 3rem;        /* 48px */
+    --spacing-3xl: 4rem;        /* 64px */
+
+    /* ===== Borders (Theme Independent) ===== */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
+    --border-radius-full: 9999px;
+
+    --border-width-thin: 1px;
+    --border-width-medium: 2px;
+    --border-width-thick: 3px;
+
+    /* ===== Transitions ===== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ===== Z-Index Layers ===== */
+    --z-base: 0;
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-overlay: 300;
+    --z-modal: 400;
+    --z-popover: 500;
+    --z-tooltip: 600;
+    --z-toast: 700;
+
+    /* ===== Global Defaults ===== */
+    /* Exact RGB samples from the installed paper-and-pen logo.
+       Sample coordinates and roles: static/assets/badnotes-palette.json. */
+    --brand-purple: #7640fd;
+    --brand-purple-deep: #5e29f8;
+    --brand-orchid: #9a4cfd;
+    --brand-lilac: #c39cf8;
+    --brand-pink: #edd3fd;
+    --brand-paper: #f4e8fb;
+    --brand-accent-rgb: 118, 64, 253;
+    --accent-solid: var(--brand-purple);
+    --brand-fill: linear-gradient(115deg, var(--brand-purple), color-mix(in srgb, var(--brand-purple) 75%, var(--brand-orchid)));
+    --brand-fill-hover: linear-gradient(115deg, var(--brand-purple-deep), var(--brand-purple));
+    --brand-wash: linear-gradient(110deg, color-mix(in srgb, var(--brand-purple) 10%, transparent), color-mix(in srgb, var(--brand-pink) 26%, transparent));
+    --brand-wash-hover: linear-gradient(110deg, color-mix(in srgb, var(--brand-purple) 20%, transparent), color-mix(in srgb, var(--brand-pink) 34%, transparent));
+    /* Shelves sit above the darker canvas surround. Dark action fills are
+       uniform, opaque tints: pale pink gradients look lit from one side. */
+    --shelf-background: #111113;
+    --thumbnail-paper: var(--color-canvas-paper);
+    --thumbnail-shadow: 0 3px 12px rgba(0,0,0,.20);
+    --thumbnail-active-shadow: 0 5px 18px rgba(0,0,0,.28);
+    --shelf-action-bg: color-mix(in srgb, var(--brand-purple) 12%, var(--shelf-background));
+    --shelf-action-hover-bg: color-mix(in srgb, var(--brand-purple) 20%, var(--shelf-background));
+    --backdrop-blur: none;
+    --app-bg-image: none;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: rgba(155, 155, 155, 0.5);
+
+    /* Default to dark theme colors in :root (fallback) */
+    --color-bg-primary: #121212;
+    --color-bg-secondary: #1e1e1e;
+    --color-bg-tertiary: #2a2a2a;
+    --color-bg-elevated: #333333;
+    --color-bg-hover: #404040;
+    --color-bg-active: #4a4a4a;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b0b0b0;
+    --color-text-tertiary: #707070;
+    --color-text-disabled: #505050;
+    --color-text-inverse: #121212;
+    --color-accent-primary: var(--brand-lilac);
+    --color-accent-hover: var(--brand-pink);
+    --color-accent-light: var(--brand-lilac);
+    --color-success: #00c853;
+    --color-warning: #ffc107;
+    --color-error: #ff5252;
+    --color-info: #00b0ff;
+    --color-border: #404040;
+    --color-border-light: #505050;
+    --color-border-focus: var(--color-accent-primary);
+    --color-canvas-bg: #1a1a1a;
+    --color-canvas-paper: #1a1a1a;
+    --color-canvas-lines: rgba(255, 255, 255, 0.1);
+    --color-canvas-grid: rgba(255, 255, 255, 0.08);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.6);
+    --box-shadow-card: 0 2px 8px rgba(0,0,0,0.4);
+    --glass-opacity: 1;
+}
+
+/* ==========================================================================
+   THEME: DARK (Default)
+   ========================================================================== */
+[data-theme="dark"] {
+    /* Backgrounds */
+    --color-bg-primary: #121212;
+    --color-bg-secondary: transparent;
+    --color-bg-tertiary: rgba(255, 255, 255, 0.02);
+    --color-bg-elevated: rgba(255, 255, 255, 0.03);
+    --color-bg-hover: rgba(255, 255, 255, 0.05);
+    --color-bg-active: rgba(255, 255, 255, 0.08);
+
+    /* ===== Liquid Glass Surface Colors ===== */
+    --glass-bg: rgba(255, 255, 255, 0.008);
+    --glass-bg-hover: rgba(255, 255, 255, 0.025);
+    --glass-bg-active: rgba(255, 255, 255, 0.04);
+    --glass-bg-elevated: rgba(255, 255, 255, 0.015);
+
+    /* Text Colors */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b0b0b0;
+    --color-text-tertiary: #707070;
+    --color-text-disabled: #505050;
+    --color-text-inverse: #121212;
+
+    /* Accent Colors */
+    --color-accent-primary: var(--brand-lilac);
+    --color-accent-hover: var(--brand-pink);
+    --color-accent-light: var(--brand-lilac);
+
+    /* Semantic Colors */
+    --color-success: #00c853;
+    --color-warning: #ffc107;
+    --color-error: #ff5252;
+    --color-info: #00b0ff;
+
+    /* ===== Liquid Glass Border System ===== */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-highlight: rgba(255, 255, 255, 0.15);
+    --glass-border-inner: rgba(255, 255, 255, 0.04);
+
+    /* Chromatic edge colors */
+    --chroma-red: rgba(255, 120, 120, 0.06);
+    --chroma-cyan: rgba(120, 220, 255, 0.06);
+    --chroma-blue: rgba(120, 180, 255, 0.05);
+    --chroma-purple: color-mix(in srgb, var(--brand-lilac) calc(0.04 * 100%), transparent);
+
+    /* Standard borders */
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-light: rgba(255, 255, 255, 0.05);
+    --color-border-focus: var(--color-accent-primary);
+
+    /* Canvas Colors */
+    --color-canvas-bg: #1a1a1a;
+    --color-canvas-paper: #1a1a1a;
+    --color-canvas-lines: rgba(255, 255, 255, 0.1);
+    --color-canvas-grid: rgba(255, 255, 255, 0.08);
+
+    /* ===== Liquid Glass Shadow System ===== */
+    --glass-shadow-xs:
+        0 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 0 0.5px rgba(255, 255, 255, 0.1);
+    --glass-shadow-sm:
+        0 2px 8px rgba(0, 0, 0, 0.9),
+        0 0 0 0.5px rgba(255, 255, 255, 0.08),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.15);
+    --glass-shadow-md:
+        0 4px 20px rgba(0, 0, 0, 0.95),
+        0 0 0 0.5px rgba(255, 255, 255, 0.1),
+        0 0 40px -10px rgba(100, 150, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    --glass-shadow-lg:
+        0 8px 40px rgba(0, 0, 0, 1),
+        0 0 0 0.5px rgba(255, 255, 255, 0.12),
+        0 0 60px -15px rgba(100, 180, 255, 0.1),
+        0 0 80px -20px rgba(255, 100, 150, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    /* Standard shadows */
+    --shadow-sm: var(--glass-shadow-sm);
+    --shadow-md: var(--glass-shadow-md);
+    --shadow-lg: var(--glass-shadow-lg);
+
+    /* ===== Liquid Glass Blur & Refraction ===== */
+    --glass-blur: blur(80px) saturate(200%) brightness(1.05);
+    --glass-blur-light: blur(40px) saturate(180%);
+    --glass-blur-subtle: blur(20px) saturate(150%);
+    --backdrop-blur: var(--glass-blur);
+
+    /* ===== Glass Specular Highlights ===== */
+    --glass-highlight-top: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.03) 3%,
+        transparent 15%
+    );
+    --glass-highlight-edge: linear-gradient(
+        90deg,
+        rgba(140, 220, 255, 0.04) 0%,
+        transparent 2%,
+        transparent 98%,
+        rgba(255, 140, 200, 0.04) 100%
+    );
+
+    /* ===== Card/Component Shadows ===== */
+    --box-shadow-card: var(--glass-shadow-md);
+    --glass-opacity: 1;
+
+    /* ===== Liquid Glass Gradients ===== */
+    --glass-depth-gradient: radial-gradient(
+        ellipse 120% 80% at 50% -20%,
+        rgba(255, 255, 255, 0.03) 0%,
+        transparent 50%
+    );
+    --glass-chroma-gradient: linear-gradient(
+        135deg,
+        rgba(255, 140, 140, 0.015) 0%,
+        transparent 20%,
+        transparent 80%,
+        rgba(140, 180, 255, 0.015) 100%
+    );
+}
+
+/* ==========================================================================
+   THEME: LIGHT
+   ========================================================================== */
+[data-theme="light"] {
+    --shelf-background: #eeeef1;
+    --thumbnail-paper: #ffffff;
+    --thumbnail-shadow: 0 3px 10px rgba(0,0,0,.07);
+    --thumbnail-active-shadow: 0 5px 18px rgba(0,0,0,.12);
+    --shelf-action-bg: var(--brand-wash);
+    --shelf-action-hover-bg: var(--brand-wash-hover);
+    /* Backgrounds */
+    --color-bg-primary: #f5f5f7;
+    --color-bg-secondary: transparent;
+    --color-bg-tertiary: rgba(0, 0, 0, 0.02);
+    --color-bg-elevated: rgba(0, 0, 0, 0.03);
+    --color-bg-hover: rgba(0, 0, 0, 0.05);
+    --color-bg-active: rgba(0, 0, 0, 0.08);
+
+    /* ===== Liquid Glass Surface Colors ===== */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-bg-hover: rgba(255, 255, 255, 0.75);
+    --glass-bg-active: rgba(255, 255, 255, 0.85);
+    --glass-bg-elevated: rgba(255, 255, 255, 0.7);
+
+    /* Text Colors */
+    --color-text-primary: #1d1d1f;
+    --color-text-secondary: #86868b;
+    --color-text-tertiary: #a1a1a6;
+    --color-text-disabled: #d2d2d7;
+    --color-text-inverse: #ffffff;
+
+    /* Accent Colors */
+    --color-accent-primary: var(--brand-purple);
+    --color-accent-hover: var(--brand-purple-deep);
+    --color-accent-light: var(--brand-lilac);
+
+    /* Semantic Colors */
+    --color-success: #34c759;
+    --color-warning: #ff9f0a;
+    --color-error: #ff3b30;
+    --color-info: #007aff;
+
+    /* ===== Liquid Glass Border System ===== */
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-border-highlight: rgba(255, 255, 255, 0.9);
+    --glass-border-inner: rgba(0, 0, 0, 0.04);
+
+    /* Chromatic edge colors */
+    --chroma-red: rgba(255, 100, 100, 0.06);
+    --chroma-cyan: rgba(100, 200, 255, 0.06);
+    --chroma-blue: rgba(100, 160, 255, 0.05);
+    --chroma-purple: color-mix(in srgb, var(--brand-lilac) calc(0.04 * 100%), transparent);
+
+    /* Standard borders */
+    --color-border: rgba(0, 0, 0, 0.08);
+    --color-border-light: rgba(0, 0, 0, 0.05);
+    --color-border-focus: var(--color-accent-primary);
+
+    /* Canvas Colors */
+    --color-canvas-bg: #ffffff;
+    --color-canvas-paper: #ffffff;
+    --color-canvas-lines: rgba(0, 0, 0, 0.1);
+    --color-canvas-grid: rgba(0, 0, 0, 0.08);
+
+    /* ===== Liquid Glass Shadow System ===== */
+    --glass-shadow-xs:
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 0 0 0.5px rgba(255, 255, 255, 0.8);
+    --glass-shadow-sm:
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        0 0 0 0.5px rgba(255, 255, 255, 0.9),
+        inset 0 0.5px 0 rgba(255, 255, 255, 1);
+    --glass-shadow-md:
+        0 4px 20px rgba(0, 0, 0, 0.1),
+        0 0 0 0.5px rgba(255, 255, 255, 0.95),
+        0 0 40px -10px rgba(100, 150, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    --glass-shadow-lg:
+        0 8px 40px rgba(0, 0, 0, 0.12),
+        0 0 0 0.5px rgba(255, 255, 255, 1),
+        0 0 60px -15px rgba(100, 180, 255, 0.1),
+        0 0 80px -20px rgba(255, 100, 150, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+
+    /* Standard shadows */
+    --shadow-sm: var(--glass-shadow-sm);
+    --shadow-md: var(--glass-shadow-md);
+    --shadow-lg: var(--glass-shadow-lg);
+
+    /* ===== Liquid Glass Blur & Refraction ===== */
+    --glass-blur: blur(80px) saturate(200%) brightness(1.05);
+    --glass-blur-light: blur(40px) saturate(180%);
+    --glass-blur-subtle: blur(20px) saturate(150%);
+    --backdrop-blur: var(--glass-blur);
+
+    /* ===== Glass Specular Highlights ===== */
+    --glass-highlight-top: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.5) 3%,
+        transparent 15%
+    );
+    --glass-highlight-edge: linear-gradient(
+        90deg,
+        rgba(140, 220, 255, 0.06) 0%,
+        transparent 2%,
+        transparent 98%,
+        rgba(255, 140, 200, 0.06) 100%
+    );
+
+    /* ===== Card/Component Shadows ===== */
+    --box-shadow-card: var(--glass-shadow-md);
+    --glass-opacity: 1;
+
+    /* ===== Liquid Glass Gradients ===== */
+    --glass-depth-gradient: radial-gradient(
+        ellipse 120% 80% at 50% -20%,
+        rgba(255, 255, 255, 0.5) 0%,
+        transparent 50%
+    );
+    --glass-chroma-gradient: linear-gradient(
+        135deg,
+        rgba(255, 140, 140, 0.02) 0%,
+        transparent 20%,
+        transparent 80%,
+        rgba(140, 180, 255, 0.02) 100%
+    );
+}
+
+/* ==========================================================================
+   THEME: OLED (True Blacks + Apple-Style Liquid Glass)
+   Authentic refraction, chromatic aberration, and glass depth effects
+   ========================================================================== */
+[data-theme="oled"] {
+    --shelf-background: #111111;
+    --thumbnail-paper: #000000;
+    /* ===== True Black Backgrounds ===== */
+    --color-bg-primary: #000000;
+    --color-bg-secondary: transparent;
+    --color-bg-tertiary: rgba(255, 255, 255, 0.02);
+    --color-bg-elevated: rgba(255, 255, 255, 0.03);
+    --color-bg-hover: rgba(255, 255, 255, 0.05);
+    --color-bg-active: rgba(255, 255, 255, 0.08);
+
+    /* ===== Liquid Glass Surface Colors ===== */
+    /* Nearly invisible - real glass is almost clear */
+    --glass-bg: rgba(255, 255, 255, 0.008);
+    --glass-bg-hover: rgba(255, 255, 255, 0.025);
+    --glass-bg-active: rgba(255, 255, 255, 0.04);
+    --glass-bg-elevated: rgba(255, 255, 255, 0.015);
+
+    /* ===== Text Colors - High contrast for OLED ===== */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #ababab;
+    --color-text-tertiary: #6e6e6e;
+    --color-text-disabled: #3a3a3a;
+    --color-text-inverse: #000000;
+
+    /* ===== Accent Colors ===== */
+    --color-accent-primary: var(--brand-lilac);
+    --color-accent-hover: var(--brand-pink);
+    --color-accent-light: var(--brand-lilac);
+
+    /* ===== Semantic Colors ===== */
+    --color-success: #30d158;
+    --color-warning: #ffd60a;
+    --color-error: #ff453a;
+    --color-info: #64d2ff;
+
+    /* ===== Liquid Glass Border System ===== */
+    /* Subtle edge definition - glass edges catch light */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-highlight: rgba(255, 255, 255, 0.15);
+    --glass-border-inner: rgba(255, 255, 255, 0.04);
+
+    /* Chromatic edge colors for refraction effect - very subtle */
+    --chroma-red: rgba(255, 120, 120, 0.06);
+    --chroma-cyan: rgba(120, 220, 255, 0.06);
+    --chroma-blue: rgba(120, 180, 255, 0.05);
+    --chroma-purple: color-mix(in srgb, var(--brand-lilac) calc(0.04 * 100%), transparent);
+
+    /* Standard borders */
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-border-light: rgba(255, 255, 255, 0.05);
+    --color-border-focus: var(--color-accent-primary);
+
+    /* ===== Canvas Colors - True black ===== */
+    --color-canvas-bg: #000000;
+    --color-canvas-paper: #000000;
+    --color-canvas-lines: rgba(255, 255, 255, 0.06);
+    --color-canvas-grid: rgba(255, 255, 255, 0.04);
+
+    /* ===== Liquid Glass Shadow System ===== */
+    /* Outer glow with color tint for glass caustics */
+    --glass-shadow-xs:
+        0 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 0 0.5px rgba(255, 255, 255, 0.1);
+    --glass-shadow-sm:
+        0 2px 8px rgba(0, 0, 0, 0.9),
+        0 0 0 0.5px rgba(255, 255, 255, 0.08),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.15);
+    --glass-shadow-md:
+        0 4px 20px rgba(0, 0, 0, 0.95),
+        0 0 0 0.5px rgba(255, 255, 255, 0.1),
+        0 0 40px -10px rgba(100, 150, 255, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    --glass-shadow-lg:
+        0 8px 40px rgba(0, 0, 0, 1),
+        0 0 0 0.5px rgba(255, 255, 255, 0.12),
+        0 0 60px -15px rgba(100, 180, 255, 0.1),
+        0 0 80px -20px rgba(255, 100, 150, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    /* Standard shadows */
+    --shadow-sm: var(--glass-shadow-sm);
+    --shadow-md: var(--glass-shadow-md);
+    --shadow-lg: var(--glass-shadow-lg);
+
+    /* ===== Liquid Glass Blur & Refraction ===== */
+    /* Heavy blur for depth, saturation boost for vibrancy */
+    --glass-blur: blur(80px) saturate(200%) brightness(1.05);
+    --glass-blur-light: blur(40px) saturate(180%);
+    --glass-blur-subtle: blur(20px) saturate(150%);
+    --backdrop-blur: var(--glass-blur);
+
+    /* ===== Glass Specular Highlights ===== */
+    /* Subtle top edge catch light - like real glass */
+    --glass-highlight-top: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.12) 0%,
+        rgba(255, 255, 255, 0.03) 3%,
+        transparent 15%
+    );
+    --glass-highlight-edge: linear-gradient(
+        90deg,
+        rgba(140, 220, 255, 0.04) 0%,
+        transparent 2%,
+        transparent 98%,
+        rgba(255, 140, 200, 0.04) 100%
+    );
+
+    /* ===== Card/Component Shadows ===== */
+    --box-shadow-card: var(--glass-shadow-md);
+    --glass-opacity: 1;
+
+    /* ===== Liquid Glass Gradients ===== */
+    /* Very subtle depth - glass is mostly clear */
+    --glass-depth-gradient: radial-gradient(
+        ellipse 120% 80% at 50% -20%,
+        rgba(255, 255, 255, 0.03) 0%,
+        transparent 50%
+    );
+
+    /* Chromatic aberration - barely visible color split */
+    --glass-chroma-gradient: linear-gradient(
+        135deg,
+        rgba(255, 140, 140, 0.015) 0%,
+        transparent 20%,
+        transparent 80%,
+        rgba(140, 180, 255, 0.015) 100%
+    );
+}

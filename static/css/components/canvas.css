@@ -1,0 +1,274 @@
+/* ==========================================================================
+   Canvas Component Styles
+   ========================================================================== */
+
+.canvas-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* CRITICAL: Disable ALL browser touch gestures for instant response */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* ===== Canvas Wrapper (for pan/zoom transforms) ===== */
+.canvas-wrapper {
+    position: relative;
+    transform-origin: center center;
+    /* CRITICAL: Disable ALL browser touch gestures for instant response */
+    touch-action: none;
+}
+
+/* ===== Canvas Layers ===== */
+.drawing-canvas,
+.preview-canvas,
+.ui-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Optimize for stylus input */
+    touch-action: none;
+    /* Prevent any selection behavior */
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.drawing-canvas {
+    z-index: 1;
+}
+
+.preview-canvas {
+    z-index: 2;
+    pointer-events: none;
+    /* For current stroke preview */
+}
+
+.ui-canvas {
+    z-index: 3;
+    /* For selections, guides, etc */
+    pointer-events: none;
+}
+
+/* ===== Canvas Paper Styles (Templates) ===== */
+.canvas-wrapper[data-template="lined"] .drawing-canvas {
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 31px,
+        var(--color-canvas-lines) 31px,
+        var(--color-canvas-lines) 32px
+    );
+    background-size: 100% 32px;
+    background-position: 0 8px;
+}
+
+.canvas-wrapper[data-template="grid"] .drawing-canvas {
+    background-image:
+        linear-gradient(to right, var(--color-canvas-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--color-canvas-grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.canvas-wrapper[data-template="dotted"] .drawing-canvas {
+    background-image: radial-gradient(circle, var(--color-canvas-grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.canvas-wrapper[data-template="cornell"] .drawing-canvas {
+    background-image:
+        /* Horizontal line at 2.5 inches from top */
+        linear-gradient(to bottom, transparent 180px, var(--color-canvas-lines) 180px, var(--color-canvas-lines) 182px, transparent 182px),
+        /* Vertical line at 2.5 inches from left */
+        linear-gradient(to right, transparent 200px, var(--color-canvas-lines) 200px, var(--color-canvas-lines) 202px, transparent 202px),
+        /* Lined paper */
+        repeating-linear-gradient(0deg, transparent, transparent 31px, var(--color-canvas-lines) 31px, var(--color-canvas-lines) 32px);
+    background-size: 100% 100%, 100% 100%, 100% 32px;
+}
+
+/* ===== Dark Paper Mode ===== */
+.canvas-wrapper[data-paper-mode="dark"] .drawing-canvas {
+    background-color: var(--color-bg-tertiary);
+}
+
+.canvas-wrapper[data-paper-mode="dark"][data-template="lined"] .drawing-canvas,
+.canvas-wrapper[data-paper-mode="dark"][data-template="grid"] .drawing-canvas,
+.canvas-wrapper[data-paper-mode="dark"][data-template="dotted"] .drawing-canvas {
+    --color-canvas-lines: rgba(255, 255, 255, 0.1);
+    --color-canvas-grid: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Selection Box ===== */
+.selection-box {
+    position: absolute;
+    border: 2px dashed var(--color-accent-primary);
+    background-color: rgba(108, 92, 231, 0.1);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* ===== Selection Handles ===== */
+.selection-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: var(--color-accent-primary);
+    border: 2px solid var(--color-text-primary);
+    border-radius: 2px;
+    cursor: pointer;
+    z-index: 11;
+}
+
+.selection-handle.top-left { cursor: nw-resize; }
+.selection-handle.top-right { cursor: ne-resize; }
+.selection-handle.bottom-left { cursor: sw-resize; }
+.selection-handle.bottom-right { cursor: se-resize; }
+.selection-handle.top-center { cursor: n-resize; }
+.selection-handle.bottom-center { cursor: s-resize; }
+.selection-handle.left-center { cursor: w-resize; }
+.selection-handle.right-center { cursor: e-resize; }
+
+/* ===== Rotation Handle ===== */
+.rotation-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-accent-primary);
+    border: 2px solid var(--color-text-primary);
+    border-radius: 50%;
+    cursor: grab;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+}
+
+.rotation-handle::before {
+    content: '';
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    width: 2px;
+    height: 20px;
+    background-color: var(--color-accent-primary);
+    transform: translateX(-50%);
+}
+
+/* ===== Cursor Styles ===== */
+.canvas-container[data-tool="pen"] {
+    cursor: crosshair;
+}
+
+.canvas-container[data-tool="highlighter"] {
+    cursor: crosshair;
+}
+
+.canvas-container[data-tool="eraser"] {
+    cursor: none; /* Custom eraser cursor rendered on canvas */
+}
+
+.canvas-container[data-tool="select"] {
+    cursor: default;
+}
+
+.canvas-container[data-tool="lasso"] {
+    cursor: crosshair;
+}
+
+.canvas-container[data-tool="text"] {
+    cursor: text;
+}
+
+.canvas-container[data-tool="shape"] {
+    cursor: crosshair;
+}
+
+.canvas-container[data-tool="image"] {
+    cursor: copy;
+}
+
+.canvas-container[data-tool="pan"] {
+    cursor: grab;
+}
+
+.canvas-container[data-tool="pan"]:active {
+    cursor: grabbing;
+}
+
+/* Touch input is a finger contact, not a hardware pointer: don't paint a
+   crosshair/arrow under the finger while panning or pinching. */
+.canvas-container.touch-contact,
+.canvas-container.touch-contact canvas {
+    cursor: none !important;
+}
+
+/* ===== Zoom Gesture Indicator ===== */
+.zoom-indicator {
+    position: fixed;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-bg-elevated);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: var(--z-tooltip);
+}
+
+.zoom-indicator.visible {
+    opacity: 1;
+}
+
+/* ===== Text Input Overlay ===== */
+.text-input-overlay {
+    position: absolute;
+    min-width: 100px;
+    min-height: 30px;
+    padding: var(--spacing-xs);
+    background-color: transparent;
+    border: 2px solid var(--color-accent-primary);
+    border-radius: var(--border-radius-sm);
+    outline: none;
+    font-family: var(--font-family-primary);
+    font-size: 16px;
+    color: var(--color-text-primary);
+    resize: both;
+    z-index: 20;
+}
+
+.text-input-overlay:focus {
+    box-shadow: var(--shadow-glow);
+}
+
+/* ===== Image Placeholder ===== */
+.image-placeholder {
+    position: absolute;
+    border: 2px dashed var(--color-accent-primary);
+    background-color: rgba(108, 92, 231, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+}
+
+.image-placeholder .icon {
+    width: 48px;
+    height: 48px;
+    color: var(--color-accent-primary);
+}
+
+/* ===== 120Hz Optimization ===== */
+@media (min-resolution: 120dpi) {
+    .canvas-wrapper {
+        /* Smooth anti-aliased rendering at high refresh rates */
+        image-rendering: auto;
+    }
+}

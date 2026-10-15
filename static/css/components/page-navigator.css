@@ -1,0 +1,223 @@
+/* ==========================================================================
+   Page Navigator Component Styles - Apple Liquid Glass
+   ========================================================================== */
+
+.page-navigator {
+    position: absolute;
+    bottom: var(--spacing-md);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    /* Liquid Glass Effect */
+    --fx-filter: blur(2px) liquid-glass(1.5, 8, 0.3) saturate(1.25);
+    background: var(--glass-bg-elevated);
+    border: 0.5px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow-md);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    z-index: var(--z-dropdown);
+    overflow: hidden;
+}
+
+/* Liquid glass inner highlight */
+.page-navigator::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--glass-highlight-top);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.75;
+}
+
+/* Chromatic edges */
+.page-navigator::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+    box-shadow:
+        inset 1px 0 0 var(--chroma-cyan),
+        inset -1px 0 0 var(--chroma-red),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 var(--chroma-purple);
+}
+
+.page-navigator > * {
+    position: relative;
+    z-index: 1;
+}
+
+.page-indicator {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    min-width: 60px;
+    text-align: center;
+    font-family: var(--font-family-mono);
+}
+
+/* ===== Page Thumbnail Strip - Liquid Glass ===== */
+.page-strip {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    /* Liquid Glass Effect */
+    --fx-filter: blur(3px) liquid-glass(1.5, 8, 0.25) saturate(1.2);
+    background: var(--glass-bg);
+    border: 0.5px solid var(--glass-border);
+    border-top: 0.5px solid var(--glass-border-highlight);
+    border-radius: 16px 16px 0 0;
+    box-shadow: var(--glass-shadow-lg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    transition: transform var(--transition-normal);
+    z-index: var(--z-dropdown);
+    max-width: 80vw;
+    overflow-x: auto;
+}
+
+/* Liquid glass inner highlight for strip */
+.page-strip::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--glass-highlight-top);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.7;
+}
+
+.page-strip > * {
+    position: relative;
+    z-index: 1;
+}
+
+.page-strip.visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+.page-strip-item {
+    width: 80px;
+    height: 100px;
+    background: var(--glass-bg-elevated);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 0.5px solid var(--glass-border-inner);
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.page-strip-item:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow-sm);
+}
+
+.page-strip-item.active {
+    border-color: color-mix(in srgb, var(--color-accent-primary) 50%, transparent);
+    box-shadow: 0 0 15px -4px color-mix(in srgb, var(--color-accent-primary) 50%, transparent);
+}
+
+.page-strip-item canvas,
+.page-strip-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.page-strip-number {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    padding: 2px 6px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-primary);
+}
+
+/* ===== Add Page Button ===== */
+.add-page-btn {
+    width: 80px;
+    height: 100px;
+    background-color: var(--color-bg-tertiary);
+    border: 2px dashed var(--color-border);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.add-page-btn:hover {
+    border-color: var(--color-accent-primary);
+    background-color: var(--color-bg-hover);
+}
+
+.add-page-btn .icon {
+    width: 32px;
+    height: 32px;
+    color: var(--color-text-tertiary);
+}
+
+/* ===== Liquid Glass Page Navigator (OLED/Dark/Light) ===== */
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .page-navigator {
+    position: relative;
+    overflow: hidden;
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .page-strip {
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border);
+}
+
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .page-strip-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.15s ease;
+}
+
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .page-strip-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border);
+}
+
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .page-strip-item.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(var(--brand-accent-rgb), 0.3);
+}
+
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .add-page-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+:is([data-theme="oled"], [data-theme="dark"], [data-theme="light"]) .add-page-btn:hover {
+    background: color-mix(in srgb, var(--accent) 15%, var(--bg-tertiary));
+    border-color: var(--accent);
+}

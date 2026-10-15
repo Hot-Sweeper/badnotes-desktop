@@ -1,0 +1,461 @@
+/* ==========================================================================
+   Modal Component Styles
+   ========================================================================== */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    background: rgba(35, 35, 35, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    overflow: hidden;
+    animation: modal-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-content > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes modal-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ===== Modal Header ===== */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.modal-close-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+    color: var(--text-muted);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    background: transparent;
+    border: none;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* ===== Modal Body ===== */
+.modal-body {
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+/* ===== Modal Footer ===== */
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--border);
+}
+
+/* ===== Settings Panel ===== */
+.settings-panel {
+    width: 500px;
+    max-width: 90vw;
+}
+
+.settings-body {
+    padding: var(--spacing-lg);
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.settings-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section h4 {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border);
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+}
+
+.setting-item label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.setting-item input[type="range"] {
+    width: 150px;
+}
+
+.setting-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.setting-item input[type="number"] {
+    width: 80px;
+    text-align: center;
+}
+
+.setting-item select {
+    width: 150px;
+}
+
+/* ===== Export Panel ===== */
+.export-panel {
+    width: 400px;
+    max-width: 90vw;
+}
+
+.export-body {
+    padding: var(--spacing-lg);
+}
+
+.export-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.export-options label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.export-options label:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.export-format {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.export-format select {
+    flex: 1;
+}
+
+/* ===== Search Panel ===== */
+.search-panel {
+    width: 600px;
+    max-width: 90vw;
+}
+
+.search-body {
+    padding: var(--spacing-lg);
+}
+
+.search-input {
+    width: 100%;
+    padding: var(--spacing-md);
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.search-result-item {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.search-result-item:hover {
+    background-color: var(--color-bg-hover);
+}
+
+.search-result-thumbnail {
+    width: 60px;
+    height: 80px;
+    background-color: var(--color-bg-tertiary);
+    border-radius: var(--border-radius-sm);
+    flex-shrink: 0;
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-title {
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-xs);
+}
+
+.search-result-excerpt {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+}
+
+.search-result-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    margin-top: var(--spacing-xs);
+}
+
+/* ===== Cover Colors ===== */
+.cover-colors {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.cover-color-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-md);
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.cover-color-btn:hover {
+    transform: scale(1.1);
+}
+
+.cover-color-btn.selected {
+    border-color: var(--color-text-primary);
+}
+
+/* ===== PDF Import Modal ===== */
+.pdf-import-modal .modal-content {
+    width: 400px;
+    max-width: 90vw;
+}
+
+.pdf-import-modal .modal-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.pdf-import-modal .modal-header h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+}
+
+.pdf-import-modal .import-description {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+}
+
+.pdf-import-modal .import-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.pdf-import-modal .import-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background: var(--color-bg-tertiary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.pdf-import-modal .import-option-btn:hover {
+    border-color: var(--color-primary);
+    background: var(--color-bg-hover);
+    transform: translateY(-2px);
+}
+
+.pdf-import-modal .import-option-btn .icon {
+    width: 48px;
+    height: 48px;
+    fill: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.pdf-import-modal .import-option-btn .option-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.pdf-import-modal .import-option-btn .option-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+}
+
+/* ===== OLED/Dark Theme - Apple-Style Liquid Glass Modals ===== */
+:is([data-theme="oled"], [data-theme="dark"]) .modal-backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+:is([data-theme="oled"], [data-theme="dark"]) .modal-content {
+    /* Transparent glass modal */
+    background: rgba(15, 15, 15, 0.65);
+
+    /* Heavy blur for glass depth */
+    backdrop-filter: blur(80px) saturate(180%);
+    -webkit-backdrop-filter: blur(80px) saturate(180%);
+
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+    position: relative;
+    overflow: hidden;
+}
+
+/* Chromatic aberration - modal dark/oled */
+:is([data-theme="oled"], [data-theme="dark"]) .modal-content::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow:
+        inset 2px 0 0 rgba(120, 220, 255, 0.08),
+        inset -2px 0 0 rgba(255, 140, 200, 0.08),
+        inset 0 2px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -2px 0 rgba(100, 150, 255, 0.05);
+}
+
+:is([data-theme="oled"], [data-theme="dark"]) .modal-header {
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+    background: transparent;
+}
+
+:is([data-theme="oled"], [data-theme="dark"]) .modal-footer {
+    border-top: 0.5px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Light Theme - Liquid Glass Modals ===== */
+[data-theme="light"] .modal-backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+[data-theme="light"] .modal-content {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(80px) saturate(180%);
+    -webkit-backdrop-filter: blur(80px) saturate(180%);
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Chromatic aberration - modal light */
+[data-theme="light"] .modal-content::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow:
+        inset 2px 0 0 rgba(100, 180, 255, 0.12),
+        inset -2px 0 0 rgba(255, 120, 180, 0.12),
+        inset 0 2px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 0 rgba(80, 120, 200, 0.08);
+}
+
+[data-theme="light"] .modal-header {
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+    background: transparent;
+}
+
+[data-theme="light"] .modal-footer {
+    border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.03);
+}

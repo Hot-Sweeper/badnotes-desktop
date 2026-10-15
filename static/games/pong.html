@@ -1,0 +1,102 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Pong</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#9bbc0f;overflow:hidden;touch-action:none}canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated}</style>
+</head><body><canvas id="g"></canvas><script>
+(function(){
+const C=document.getElementById('g'),X=C.getContext('2d');
+let W,H;
+const PAL=['#0f380f','#306230','#8bac0f','#9bbc0f'];
+const padW=0.03,padH=0.22,ballR=0.02,ballSpeed=0.008,cpuSpeed=0.006;
+let playerY,cpuY,bx,by,bvx,bvy,pScore,cScore,over,started,serving;
+
+function resize(){W=C.width=C.clientWidth;H=C.height=C.clientHeight;}
+function reset(){
+  playerY=0.5;cpuY=0.5;pScore=0;cScore=0;over=false;started=false;
+  serve(1);
+}
+function serve(dir){
+  bx=0.5;by=0.5;
+  const angle=(Math.random()*0.8-0.4);
+  bvx=ballSpeed*dir;bvy=ballSpeed*Math.sin(angle);
+  serving=true;setTimeout(()=>serving=false,300);
+}
+function tick(){
+  if(over||!started||serving)return;
+  bx+=bvx;by+=bvy;
+  // top/bottom bounce
+  if(by-ballR<0){by=ballR;bvy=Math.abs(bvy);}
+  if(by+ballR>1){by=1-ballR;bvy=-Math.abs(bvy);}
+  // player paddle (left)
+  const px=0.06;
+  if(bx-ballR<px+padW&&bx-ballR>px-0.01&&by>playerY-padH/2&&by<playerY+padH/2){
+    bvx=Math.abs(bvx)*1.05;
+    bvy+=(by-playerY)*0.02;
+    bx=px+padW+ballR;
+  }
+  // cpu paddle (right)
+  const cx=0.94-padW;
+  if(bx+ballR>cx&&bx+ballR<cx+padW+0.01&&by>cpuY-padH/2&&by<cpuY+padH/2){
+    bvx=-Math.abs(bvx)*1.05;
+    bvy+=(by-cpuY)*0.02;
+    bx=cx-ballR;
+  }
+  // clamp speed
+  const spd=Math.sqrt(bvx*bvx+bvy*bvy);
+  if(spd>0.02){bvx*=0.02/spd;bvy*=0.02/spd;}
+  // scoring
+  if(bx<0){cScore++;if(cScore>=5){over=true;}else serve(1);}
+  if(bx>1){pScore++;if(pScore>=5){over=true;}else serve(-1);}
+  // CPU AI
+  const target=by+(bvx>0?(bx-0.94)*bvy/bvx:0);
+  if(cpuY<target-0.02)cpuY+=cpuSpeed;
+  else if(cpuY>target+0.02)cpuY-=cpuSpeed;
+  cpuY=Math.max(padH/2,Math.min(1-padH/2,cpuY));
+}
+function draw(){
+  X.fillStyle=PAL[3];X.fillRect(0,0,W,H);
+  if(!started){
+    X.fillStyle=PAL[0];X.font='bold '+Math.round(W/7)+'px monospace';X.textAlign='center';
+    X.fillText('PONG',W/2,H/2-W/7);
+    X.font=Math.round(W/14)+'px monospace';
+    X.fillText('Press A',W/2,H/2+W/10);
+    return;
+  }
+  // center line
+  X.setLineDash([H/30,H/30]);X.strokeStyle=PAL[2];X.lineWidth=2;
+  X.beginPath();X.moveTo(W/2,0);X.lineTo(W/2,H);X.stroke();X.setLineDash([]);
+  // paddles
+  X.fillStyle=PAL[0];
+  X.fillRect(0.06*W,(playerY-padH/2)*H,padW*W,padH*H);
+  X.fillRect((0.94-padW)*W,(cpuY-padH/2)*H,padW*W,padH*H);
+  // ball
+  X.beginPath();X.arc(bx*W,by*H,ballR*W,0,Math.PI*2);X.fill();
+  // scores
+  X.font='bold '+Math.round(W/6)+'px monospace';X.textAlign='center';
+  X.fillStyle=PAL[2];
+  X.fillText(pScore,W*0.3,H*0.15);
+  X.fillText(cScore,W*0.7,H*0.15);
+  if(over){
+    X.fillStyle='rgba(155,188,15,0.88)';X.fillRect(0,0,W,H);
+    X.fillStyle=PAL[0];X.font='bold '+Math.round(W/8)+'px monospace';
+    X.fillText(pScore>cScore?'YOU WIN':'YOU LOSE',W/2,H/2-W/10);
+    X.font=Math.round(W/14)+'px monospace';
+    X.fillText(pScore+' - '+cScore,W/2,H/2+W/12);
+    X.font=Math.round(W/18)+'px monospace';
+    X.fillText('Press A',W/2,H/2+W/4);
+  }
+}
+function input(btn){
+  if(btn==='a'){if(!started||over){reset();started=true;}return;}
+  if(!started||over)return;
+  const step=0.04;
+  if(btn==='up')playerY=Math.max(padH/2,playerY-step);
+  if(btn==='down')playerY=Math.min(1-padH/2,playerY+step);
+}
+function loop(t){tick();draw();requestAnimationFrame(loop);}
+resize();reset();requestAnimationFrame(loop);
+window.addEventListener('resize',resize);
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='gb-input')input(e.data.btn);});
+const kmap={ArrowUp:'up',ArrowDown:'down',Enter:'a',' ':'a',w:'up',s:'down'};
+document.addEventListener('keydown',e=>{const b=kmap[e.key];if(b){e.preventDefault();input(b);}});
+})();
+</script></body></html>

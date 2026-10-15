@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BadNotes Scan</title>
+    <link rel="icon" href="/static/badnotes-icon.png">
+    <link rel="stylesheet" href="/static/css/variables.css">
+    <link rel="stylesheet" href="/static/css/components/theme-palettes.css">
+    <link rel="stylesheet" href="/static/css/components/scanner.css">
+    <script>
+        let settings={};
+        try{settings=JSON.parse(localStorage.getItem('badnotes_settings')||'{}')||{};}catch{}
+        if(typeof settings!=='object'||Array.isArray(settings))settings={};
+        settings.theme=['light','dark','oled'].includes(settings.theme)?settings.theme:(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+        settings.accentTheme=settings.accentTheme||'iris';document.documentElement.dataset.theme=settings.theme;
+    </script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            color: #fff;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            padding: 16px 16px 12px;
+            text-align: center;
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(48, 54, 61, 0.6);
+        }
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            font-size: 12px;
+            color: #8b949e;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .preview-area {
+            flex: 1;
+            min-height: 200px;
+            background: rgba(13, 17, 23, 0.6);
+            border: 2px dashed rgba(88, 166, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .preview-area.has-image {
+            border-style: solid;
+            border-color: rgba(88, 166, 255, 0.5);
+        }
+        .preview-area.processed {
+            border-color: rgba(46, 160, 67, 0.6);
+        }
+        .preview-area img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .preview-placeholder {
+            text-align: center;
+            color: #8b949e;
+        }
+        .preview-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+        .preview-placeholder p {
+            font-size: 13px;
+        }
+        .preview-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .preview-badge.original {
+            background: rgba(88, 166, 255, 0.2);
+            color: #58a6ff;
+        }
+        .preview-badge.processed {
+            background: rgba(46, 160, 67, 0.2);
+            color: #3fb950;
+        }
+        .source-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .source-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 10px;
+            background: rgba(33, 38, 45, 0.8);
+            border: 1px solid rgba(48, 54, 61, 0.8);
+            border-radius: 10px;
+            color: #c9d1d9;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .source-btn:active {
+            transform: scale(0.97);
+        }
+        .source-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #58a6ff;
+        }
+        .mode-section {
+            display: none;
+        }
+        .mode-section.visible {
+            display: block;
+        }
+        .mode-label {
+            font-size: 11px;
+            color: #8b949e;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .mode-options {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .mode-btn {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 12px;
+            background: rgba(33, 38, 45, 0.8);
+            border: 2px solid rgba(48, 54, 61, 0.8);
+            border-radius: 8px;
+            color: #8b949e;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            min-width: 60px;
+        }
+        .mode-btn.active {
+            background: rgba(88, 166, 255, 0.15);
+            border-color: #58a6ff;
+            color: #58a6ff;
+        }
+        .mode-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .action-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .action-btn.preview {
+            background: linear-gradient(135deg, #58a6ff 0%, #388bfd 100%);
+        }
+        .action-btn.send {
+            background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+        }
+        .action-btn.retry {
+            background: rgba(48, 54, 61, 0.8);
+            border: 1px solid rgba(88, 166, 255, 0.4);
+            flex: 0.4;
+        }
+        .progress-container {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .progress-container.visible {
+            display: flex;
+        }
+        .progress-bar {
+            height: 6px;
+            background: rgba(48, 54, 61, 0.8);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #58a6ff 0%, #a371f7 100%);
+            border-radius: 3px;
+            transition: width 0.2s ease-out;
+        }
+        .progress-text {
+            font-size: 12px;
+            color: #8b949e;
+            text-align: center;
+        }
+        .status {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+        }
+        .status.visible {
+            display: block;
+        }
+        .status.success {
+            background: rgba(35, 134, 54, 0.2);
+            border: 1px solid rgba(46, 160, 67, 0.5);
+            color: #3fb950;
+        }
+        .status.error {
+            background: rgba(248, 81, 73, 0.15);
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            color: #f85149;
+        }
+        .status.info {
+            background: rgba(88, 166, 255, 0.15);
+            border: 1px solid rgba(88, 166, 255, 0.4);
+            color: #58a6ff;
+        }
+        .success-icon {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: rgba(35, 134, 54, 0.95);
+            border-radius: 50%;
+            animation: popIn 0.3s ease-out;
+        }
+        .success-icon.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            color: #fff;
+        }
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            70% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(13, 17, 23, 0.85);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            border-radius: 10px;
+        }
+        .loading-overlay.visible {
+            display: flex;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(88, 166, 255, 0.3);
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 13px;
+            color: #8b949e;
+        }
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .batch-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(88, 166, 255, 0.15);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #58a6ff;
+        }
+        .batch-info #batchCount {
+            font-weight: 500;
+        }
+        .batch-clear {
+            background: rgba(248, 81, 73, 0.2);
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            color: #f85149;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="scanner-brand"><img src="/static/assets/badnotes-logo-extracted.png" width="36" height="36" alt=""><h1>BadNotes <span>Scan</span></h1></div>
+        <p>Preview your scan before sending</p>
+    </header>
+    <div class="container">
+        <div class="preview-area" id="previewArea">
+            <div class="preview-placeholder" id="placeholder">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p>Select an image to scan</p>
+            </div>
+            <img id="previewImg" alt="Selected document preview" style="display: none;" />
+            <div class="preview-badge original" id="originalBadge" style="display: none;">Original</div>
+            <div class="preview-badge processed" id="processedBadge" style="display: none;">Processed</div>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div class="loading-text" id="loadingText">Processing...</div>
+            </div>
+            <div class="success-icon" id="successIcon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+        </div>
+        <div class="source-options" id="sourceOptions">
+            <button class="source-btn" id="cameraBtn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span>Camera</span>
+            </button>
+            <button class="source-btn" id="galleryBtn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Gallery</span>
+            </button>
+        </div>
+        <div class="mode-section" id="modeSection">
+            <div class="mode-label">Enhancement Mode</div>
+            <div class="mode-options">
+                <button class="mode-btn" data-mode="original">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Original</span>
+                </button>
+                <button class="mode-btn active" data-mode="nocrop">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9l6 6m0-6l-6 6"/>
+                    </svg>
+                    <span>Cropped</span>
+                </button>
+                <button class="mode-btn" data-mode="bw">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>B&W</span>
+                </button>
+            </div>
+        </div>
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Uploading...</div>
+        </div>
+        <div class="action-buttons" id="sendButtons" style="display: none;">
+            <button class="action-btn send" id="sendBtn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <span>Send to BadNotes</span>
+            </button>
+        </div>
+        <div class="status" id="statusMsg" role="status" aria-live="polite"></div>
+        <!-- Batch info display -->
+        <div class="batch-info" id="batchInfo" style="display: none;">
+            <span id="batchCount">0 images selected</span>
+            <button type="button" class="batch-clear" id="batchClear">Clear selection</button>
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="cameraInput" class="hidden-input" />
+        <input type="file" accept="image/*" id="galleryInput" class="hidden-input" multiple />
+    </div>
+    <script src="/static/js/ui/AppearanceSettings.js"></script>
+    <script>AppearanceSettings.applyAccent(settings.theme,settings.accentTheme);</script>
+    <script>
+        const previewArea = document.getElementById('previewArea');
+        const placeholder = document.getElementById('placeholder');
+        const previewImg = document.getElementById('previewImg');
+        const originalBadge = document.getElementById('originalBadge');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const successIcon = document.getElementById('successIcon');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const galleryBtn = document.getElementById('galleryBtn');
+        const cameraInput = document.getElementById('cameraInput');
+        const galleryInput = document.getElementById('galleryInput');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const statusMsg = document.getElementById('statusMsg');
+        const sourceOptions = document.getElementById('sourceOptions');
+        const modeSection = document.getElementById('modeSection');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const sendButtons = document.getElementById('sendButtons');
+        const sendBtn = document.getElementById('sendBtn');
+        const batchInfo = document.getElementById('batchInfo');
+        const batchCount = document.getElementById('batchCount');
+        const batchClear = document.getElementById('batchClear');
+
+        let selectedFiles = [];  // Array for batch upload
+        let currentPreviewIndex = 0;
+        let selectedMode = 'nocrop';
+        let imageDimensions = { width: 800, height: 600 };
+        let previewURL=null;
+        function releasePreview(){if(previewURL){URL.revokeObjectURL(previewURL);previewURL=null;}}
+        window.addEventListener('pagehide',event=>{if(!event.persisted)releasePreview();});
+
+        function showStatus(message, type = 'info') {
+            statusMsg.textContent = message;
+            statusMsg.className = 'status visible ' + type;
+            if (type === 'success') {
+                setTimeout(() => statusMsg.classList.remove('visible'), 4000);
+            }
+        }
+
+        function hideStatus() {
+            statusMsg.classList.remove('visible');
+        }
+
+        function showOriginal(files) {
+            // Convert FileList to array and add to selectedFiles
+            const fileArray = Array.from(files);
+            selectedFiles = fileArray;
+            currentPreviewIndex = 0;
+
+            // Update batch info
+            if (selectedFiles.length > 1) {
+                batchInfo.style.display = 'flex';
+                batchCount.textContent = `${selectedFiles.length} images selected`;
+            } else {
+                batchInfo.style.display = 'none';
+            }
+
+            // Show first image preview
+            showFilePreview(selectedFiles[0]);
+        }
+
+        function showFilePreview(file) {
+            if (!file) return;
+            releasePreview();
+            const url=previewURL=URL.createObjectURL(file);
+            previewImg.onload = () => {
+                if(previewURL!==url)return;
+                imageDimensions={width:previewImg.naturalWidth,height:previewImg.naturalHeight};
+                previewImg.style.display = 'block';
+                placeholder.style.display = 'none';
+                previewArea.classList.add('has-image');
+                originalBadge.style.display = 'block';
+                successIcon.classList.remove('visible');
+                modeSection.classList.add('visible');
+                sendButtons.style.display = 'flex';
+                hideStatus();
+            };
+            previewImg.onerror=()=>{if(previewURL===url){releasePreview();showStatus('Could not open this image. Try another file.','error');}};
+            previewImg.src=url;
+        }
+
+        function resetUI() {
+            releasePreview();previewImg.onload=previewImg.onerror=null;
+            selectedFiles = [];
+            currentPreviewIndex = 0;
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            placeholder.style.display = 'block';
+            previewArea.classList.remove('has-image', 'processed');
+            originalBadge.style.display = 'none';
+            progressContainer.classList.remove('visible');
+            progressFill.style.width = '0%';
+            sourceOptions.style.display = 'grid';
+            modeSection.classList.remove('visible');
+            sendButtons.style.display = 'none';
+            loadingOverlay.classList.remove('visible');
+            batchInfo.style.display = 'none';
+            cameraInput.value = '';
+            galleryInput.value = '';
+        }
+
+        async function notifyUploadStart() {
+            try {
+                await fetch('/api/scan/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        width: imageDimensions.width,
+                        height: imageDimensions.height
+                    })
+                });
+            } catch (err) {
+                console.warn('Failed to notify upload start:', err);
+            }
+        }
+
+        // Report progress to server for desktop display
+        let lastReportedProgress = 0;
+        function reportProgress(percent) {
+            // Only report every 5% to avoid flooding
+            if (percent - lastReportedProgress >= 5 || percent >= 100) {
+                lastReportedProgress = percent;
+                fetch('/api/scan/progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ progress: percent })
+                }).catch(() => {}); // Ignore errors
+            }
+        }
+
+        // Compress image client-side for faster upload (high quality preserved)
+        function compressImage(file, maxDimension = 4000, quality = 0.92) {
+            return new Promise((resolve) => {
+                // Skip compression for small files (< 1MB)
+                if (file.size < 1024 * 1024) {
+                    resolve(file);
+                    return;
+                }
+
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+
+                    let { width, height } = img;
+
+                    // Only resize if larger than maxDimension
+                    if (width <= maxDimension && height <= maxDimension) {
+                        // Still compress via canvas for smaller file size
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        canvas.toBlob((blob) => {
+                            canvas.width=canvas.height=0;
+                            if (blob && blob.size < file.size) {
+                                resolve(new File([blob], file.name || 'scan.jpg', { type: 'image/jpeg' }));
+                            } else {
+                                resolve(file); // Original was smaller
+                            }
+                        }, 'image/jpeg', quality);
+                        return;
+                    }
+
+                    // Calculate new dimensions maintaining aspect ratio
+                    const ratio = Math.min(maxDimension / width, maxDimension / height);
+                    const newWidth = Math.round(width * ratio);
+                    const newHeight = Math.round(height * ratio);
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    const ctx = canvas.getContext('2d');
+
+                    // High quality resize
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    canvas.toBlob((blob) => {
+                        canvas.width=canvas.height=0;
+                        if (blob) {
+                            resolve(new File([blob], file.name || 'scan.jpg', { type: 'image/jpeg' }));
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', quality);
+                };
+
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    resolve(file); // Fall back to original
+                };
+
+                img.src = url;
+            });
+        }
+
+        function uploadFile(file, mode) {
+            lastReportedProgress = 0;
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                const formData = new FormData();
+                formData.append('file', file, file.name || 'scan.jpg');
+                formData.append('mode', mode);
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressFill.style.width = percent + '%';
+                        reportProgress(percent);  // Report to server
+                        if (percent < 100) {
+                            progressText.textContent = 'Uploading... ' + percent + '%';
+                        } else {
+                            progressText.textContent = 'Finalizing...';
+                        }
+                    }
+                });
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText));
+                        } catch {
+                            resolve({ success: true });
+                        }
+                    } else {
+                        reject(new Error('Upload failed: ' + xhr.status));
+                    }
+                });
+                xhr.addEventListener('error', () => reject(new Error('Network error')));
+                xhr.open('POST', '/api/scan/upload');
+                xhr.send(formData);
+            });
+        }
+
+        async function handleSend() {
+            if (selectedFiles.length === 0) return;
+            sendButtons.style.display = 'none';
+            modeSection.classList.remove('visible');
+            batchInfo.style.display = 'none';
+            progressContainer.classList.add('visible');
+            progressFill.style.width = '0%';
+            hideStatus();
+
+            const totalFiles = selectedFiles.length;
+            let uploadedCount = 0;
+            let failedCount = 0;
+
+            try {
+                for (let i = 0; i < totalFiles; i++) {
+                    const file = selectedFiles[i];
+                    progressText.textContent = totalFiles > 1
+                        ? `Uploading ${i + 1}/${totalFiles}...`
+                        : 'Uploading...';
+
+                    // Notify start for each image
+                    await notifyUploadStart();
+
+                    // High quality: original mode = no compression, others = light compression
+                    let fileToUpload = file;
+                    if (selectedMode !== 'original') {
+                        progressText.textContent = totalFiles > 1
+                            ? `Processing ${i + 1}/${totalFiles}...`
+                            : 'Processing...';
+                        fileToUpload = await compressImage(file, 4000, 0.92);
+                    }
+
+                    progressText.textContent = totalFiles > 1
+                        ? `Uploading ${i + 1}/${totalFiles}...`
+                        : 'Uploading...';
+
+                    try {
+                        await uploadFile(fileToUpload, selectedMode);
+                        uploadedCount++;
+
+                        // Update overall progress
+                        const overallProgress = Math.round(((i + 1) / totalFiles) * 100);
+                        progressFill.style.width = overallProgress + '%';
+
+                        // Small delay between uploads to let desktop process
+                        if (i < totalFiles - 1) {
+                            await new Promise(r => setTimeout(r, 300));
+                        }
+                    } catch (err) {
+                        console.error('Failed to upload', file.name, err);
+                        failedCount++;
+                    }
+                }
+
+                progressContainer.classList.remove('visible');
+                successIcon.classList.add('visible');
+
+                if (failedCount > 0) {
+                    showStatus(`Sent ${uploadedCount}/${totalFiles} (${failedCount} failed)`, 'error');
+                } else {
+                    showStatus(totalFiles > 1 ? `Sent ${totalFiles} images!` : 'Sent to BadNotes!', 'success');
+                }
+
+                setTimeout(() => {
+                    successIcon.classList.remove('visible');
+                    resetUI();
+                }, 2000);
+            } catch (err) {
+                progressContainer.classList.remove('visible');
+                sendButtons.style.display = 'flex';
+                modeSection.classList.add('visible');
+                if (totalFiles > 1) batchInfo.style.display = 'flex';
+                showStatus('Upload failed: ' + err.message, 'error');
+            }
+        }
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedMode = btn.dataset.mode;
+            });
+        });
+
+        cameraBtn.addEventListener('click', () => cameraInput.click());
+        galleryBtn.addEventListener('click', () => galleryInput.click());
+        cameraInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) showOriginal(e.target.files);
+        });
+        galleryInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) showOriginal(e.target.files);
+        });
+        sendBtn.addEventListener('click', handleSend);
+        batchClear.addEventListener('click', resetUI);
+        previewArea.addEventListener('click', (e) => {
+            if (selectedFiles.length > 0 && !e.target.closest('.loading-overlay') && !e.target.closest('.success-icon')) {
+                galleryInput.click();
+            }
+        });
+    </script>
+</body>
+</html>
